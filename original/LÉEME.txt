@@ -1,0 +1,26 @@
+El programa de cálculo de la medición de pobreza 2016, utiliza la información del Modelo Estadístico 2016 para la continuidad del MCS-ENIGH, presenta tres cambios respecto a los programas de cálculo anteriores:
+
+1)	Instituciones médicas 
+En la base de población (poblacion.dta) la variable inst_5, que en levantamientos anteriores representaba “Institución médica Otro”, pasó a ser “Institución médica IMSS-Prospera” en 2016. De este modo, en 2016 se crea una nueva variable inst_6 que representará “Institución médica Otro”. Es decir,
+En levantamientos anteriores: 
+inst_5 - Institución médica Otro
+En 2016:
+inst_5 - IMSS-Prospera
+inst_6 - Institución médica Otro
+
+2)	Prestaciones
+En levantamientos anteriores y sus correspondientes programas de cálculo se utilizaban las variables pres_1, pres_2 y pres_8 (de la base trabajos.dta) que tienen información respecto a las prestaciones de “Incapacidad en caso de enfermedad, accidente o maternidad”, “Aguinaldo” y “SAR o Afore”, respectivamente. En 2016, “Incapacidad en caso de enfermedad, accidente o maternidad” pasa a ser pres_7, “Aguinaldo” a pres_8, y “SAR o Afore” a pres_14. Es decir,
+En levantamientos anteriores:
+pres_1 - Incapacidad en caso de enfermedad, accidente o maternidad
+Pres_2 – Aguinaldo
+pres_8 - SAR o Afore 
+
+En 2016:
+
+pres_7 - Incapacidad médica
+Pres_8 - Aguinaldo
+pres_14 - SAR o AFORE
+
+3)	Captadores de agua
+La Comisión Nacional del Agua solicitó al Consejo Nacional de Evaluación de la Política de Desarrollo Social la valoración y, en su caso, la incorporación de captadores de lluvia como nueva categoría a considerar en el acceso a agua potable, subindicador de la carencia por acceso a servicios básicos de la vivienda. Como un criterio de equivalencia para considerar que la población en viviendas con captadores de agua certificados por CONAGUA y que residan en localidades donde no se haya registrado una precipitación pluvial anual de al menos 1500 milimetros. No es carente por acceso al agua. El código de captadores de agua de lluvia se encuentra en la variable disp_agua==”4” en la base de viviendas.dta.
+Para más información sobre la lista de las localidades con estas características, referirse al archivo “PROCAPTAR 2017 PARA CONEVAL.pdf” dentro de la carpeta descargada.
