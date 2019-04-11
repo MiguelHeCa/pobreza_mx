@@ -45,8 +45,8 @@ memory.size()
 #########PROGRAMA PARA LA MEDICI?N DE LA POBREZA 2016###########
 
 # 
-# ##Parte I Indicadores de Privaci?n Social:
-# ##INDICADOR DE CARENCIA POR REZAGO EDUCATIVO
+# ##Parte I Indicadores de Privaci?n Social: 
+# ##INDICADOR DE CARENCIA POR REZAGO EDUCATIVO ----
 # 
 # poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
 # names(poblacion1 ) =  tolower(names(poblacion1))
@@ -130,7 +130,7 @@ memory.size()
 # detach(poblacion)
 
 ##Parte II Indicadores de Privaci?n Social:
-##INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS DE SALUD
+##INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS DE SALUD ----
 
 rm(list = ls())
 trabajos <- read.dbf("Bases de datos/trabajos.dbf",as.is = TRUE)
@@ -395,7 +395,7 @@ write.csv(poblacion, 'Bases/ic_asalud16.csv', row.names = FALSE)
 write.dbf(poblacion, 'Bases/ic_asalud16.dbf')
 
 ##Parte III Indicadores de Privaci?n social:
-##INDICADOR DE CARENCIA POR ACCESO A LA SEGURIDAD SOCIAL
+##INDICADOR DE CARENCIA POR ACCESO A LA SEGURIDAD SOCIAL ----
 
 rm(list = ls())
 trabajos <- read.dbf("Bases de datos/trabajos.dbf",as.is = TRUE)
@@ -743,7 +743,7 @@ write.csv(poblacion, 'Bases/ic_segsoc16.csv', row.names = FALSE)
 write.dbf(poblacion, 'Bases/ic_segsoc16.dbf')
 
 #Parte IV Indicadores de Privaci?n social:
-#INDICADOR DE CARENCIA POR CALIDAD Y ESPACIOS EN LA VIVIENDA
+#INDICADOR DE CARENCIA POR CALIDAD Y ESPACIOS EN LA VIVIENDA ----
 
 #Material de construcci?n de la vivienda
 rm(list = ls())
@@ -836,7 +836,7 @@ write.dbf(hogares2, 'Bases/ic_cev16.dbf')
 
 
 #Parte V Indicadores de Privaci?n Social:
-#INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS B?SICOS EN LA VIVIENDA
+#INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS B?SICOS EN LA VIVIENDA ----
 
 rm(list = ls())
 
@@ -942,7 +942,7 @@ write.dbf(hogares, 'Bases/ic_sbv16.dbf')
 detach(hogares)
 
 #Parte VI Indicadores de Privaci?n Social:
-#INDICADOR DE CARENCIA POR ACCESO A LA ALIMENTACION
+#INDICADOR DE CARENCIA POR ACCESO A LA ALIMENTACION ----
 
 rm(list = ls())
 
@@ -1121,7 +1121,7 @@ write.dbf(hogares, 'Bases/ic_ali16.dbf')
 detach(hogares)
 
 
-#Parte VII Bienestar (ingresos)
+#Parte VII Bienestar (ingresos) ----
 
 #Para la construcci?n del ingreso corriente del hogar es necesario utilizar
 #informaci?n sobre la condici?n de ocupaci?n y los ingresos de los individuos.
@@ -2053,9 +2053,9 @@ write.csv(ingresos2, 'Bases/p_ingresos16.csv', row.names = FALSE)
 write.dbf(ingresos2, 'Bases/p_ingresos16.dbf')
 detach(ingresos2)
 
-##Parte VIII Pobreza
+##Parte VIII Pobreza ----
 
-######################################################
+#
 
 rm(list = ls())
 rezedu=read.csv('Bases/ic_rezedu16.csv',header=TRUE, sep=",", na.strings="NA", dec=".")
