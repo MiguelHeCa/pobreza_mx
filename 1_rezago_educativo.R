@@ -22,3 +22,9 @@ poblacion <- poblacion_brut %>%
 
 rm(poblacion_brut)
 gc()
+
+
+# Año de nacimiento -------------------------------------------------------
+
+poblacion <- mutate(poblacion, anac_e = 2016 - edad)
+
