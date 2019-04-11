@@ -37,3 +37,33 @@ poblacion <- poblacion %>%
     asis_esc == "2" ~ 1
   ))
 
+# Nivel educativo ---------------------------------------------------------
+
+poblacion <- poblacion %>% 
+  mutate_at(c("nivelaprob", "gradoaprob", "antec_esc"), as.numeric)
+
+poblacion <- poblacion %>% 
+  mutate(niv_ed = case_when(
+    
+    # Con primaria incompleta o menos
+    (nivelaprob < 2) | (nivelaprob == 2 & gradoaprob < 6)     ~ 0,
+    
+    # Con primaria completa o secundaria incompleta
+    (nivelaprob == 2 & gradoaprob == 6) |
+      (nivelaprob == 3 & gradoaprob < 3) |
+      (nivelaprob == 5 | nivelaprob == 6) &
+      gradoaprob < 3 &
+      antec_esc == 1                                          ~ 1,
+    
+    # Secundaria completa o mayor nivel educativo
+    ((nivelaprob == 3 & gradoaprob == 3) |
+       (nivelaprob == 4) |
+       (nivelaprob == 5 & antec_esc == 1 & gradoaprob >= 3) |  
+       (nivelaprob == 6 & antec_esc == 1 & gradoaprob >= 3) |
+       (nivelaprob == 5 & antec_esc >= 2) |
+       (nivelaprob == 6 & antec_esc >= 2) |
+       (nivelaprob >= 7))                                     ~ 2,
+    
+    # Todo lo demás
+    TRUE                                                      ~ NA_real_
+  ))
