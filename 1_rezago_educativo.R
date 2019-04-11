@@ -40,7 +40,7 @@ poblacion <- poblacion %>%
 # Nivel educativo ---------------------------------------------------------
 
 poblacion <- poblacion %>% 
-  mutate_at(c("nivelaprob", "gradoaprob", "antec_esc"), as.numeric)
+  mutate_at(c("nivelaprob", "gradoaprob", "antec_esc", "hablaind"), as.numeric)
 
 poblacion <- poblacion %>% 
   mutate(niv_ed = case_when(
@@ -93,3 +93,19 @@ poblacion <- poblacion %>%
       edad >= 16 & anac_e <= 1981 & niv_ed > 0                 ~ 0
     )
   )
+
+# Población indígena ------------------------------------------------------
+poblacion <- poblacion %>% 
+  mutate(hli = case_when(
+    edad >= 3 & hablaind == 1 ~ 1,
+    edad >= 3 & hablaind == 2 ~ 0,
+    TRUE ~ NA_real_
+  ))
+
+
+poblacion=poblacion[,c("folioviv", "foliohog", "numren", "edad", "anac_e", "inas_esc", "antec_esc", "niv_ed", "ic_rezedu", "hli")]
+poblacion <- orderBy(~+folioviv+foliohog+numren, data=poblacion)
+
+write.csv(poblacion, 'Bases/ic_rezedu16.csv', row.names = FALSE)
+write.dbf(poblacion, 'Bases/ic_rezedu16.dbf')
+
