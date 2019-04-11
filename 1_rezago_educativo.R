@@ -1,6 +1,5 @@
 # Carencia por rezago educativo
 
-
 # Paquetes ----------------------------------------------------------------
 
 library(tidyverse)
@@ -23,8 +22,18 @@ poblacion <- poblacion_brut %>%
 rm(poblacion_brut)
 gc()
 
-
 # Año de nacimiento -------------------------------------------------------
 
+# Se resta 2016 de la edad porque es el año en que se levantó la encuesta
 poblacion <- mutate(poblacion, anac_e = 2016 - edad)
+
+# Inasistencia escolar ----------------------------------------------------
+
+# Se calcula para personas con 3 años en adelante
+
+poblacion <- poblacion %>% 
+  mutate(inas_esc = case_when(
+    asis_esc == "1" ~ 0,
+    asis_esc == "2" ~ 1
+  ))
 
