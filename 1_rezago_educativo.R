@@ -83,15 +83,13 @@ poblacion <- poblacion %>%
 poblacion <- poblacion %>%
   mutate(
     ic_rezedu = case_when(
-      (edad >= 3 & edad <= 15) & 
-        inas_esc == 1 & 
-        (niv_ed == 0 | niv_ed == 1)                                 ~ 1,
-      (edad >= 16) & (anac_e >= 1982) & (niv_ed == 0 | niv_ed == 1) ~ 1,
-      (edad >= 16) & (anac_e <= 1981) & (niv_ed == 0)               ~ 1,
-      (edad >= 0 & edad <= 2)                                       ~ 0,
-      (edad >= 3 & edad <= 15) & inas_esc == 0                      ~ 0,
-      (edad >= 3 & edad <= 15) & inas_esc == 1 & (niv_ed == 2)      ~ 0,
-      (edad >= 16) & (anac_e >= 1982) & (niv_ed == 2)               ~ 0,
-      (edad >= 16) & (anac_e <= 1981) & (niv_ed == 1 | niv_ed == 2) ~ 0
+      (edad >= 3 & edad <= 15) &  inas_esc == 1 &  niv_ed <= 1 ~ 1,
+      edad >= 16 & anac_e >= 1982 & niv_ed <= 1                ~ 1,
+      edad >= 16 & anac_e <= 1981 & niv_ed == 0                ~ 1,
+      edad >= 0  & edad <= 2                                   ~ 0,
+      (edad >= 3 & edad <= 15) & inas_esc == 0                 ~ 0,
+      (edad >= 3 & edad <= 15) & inas_esc == 1 & niv_ed == 2   ~ 0,
+      edad >= 16 & anac_e >= 1982 & niv_ed == 2                ~ 0,
+      edad >= 16 & anac_e <= 1981 & niv_ed > 0                 ~ 0
     )
   )
