@@ -102,10 +102,14 @@ poblacion <- poblacion %>%
     TRUE ~ NA_real_
   ))
 
+# Exportando --------------------------------------------------------------
 
-poblacion=poblacion[,c("folioviv", "foliohog", "numren", "edad", "anac_e", "inas_esc", "antec_esc", "niv_ed", "ic_rezedu", "hli")]
-poblacion <- orderBy(~+folioviv+foliohog+numren, data=poblacion)
+poblacion <- poblacion %>% 
+  select(folioviv, foliohog, numren,
+         edad, anac_e, inas_esc, antec_esc,
+         niv_ed, ic_rezedu, hli) %>% 
+  arrange(folioviv, foliohog, numren)
 
-write.csv(poblacion, 'Bases/ic_rezedu16.csv', row.names = FALSE)
-write.dbf(poblacion, 'Bases/ic_rezedu16.dbf')
+saveRDS(poblacion, "data/ic_rezedu16.rds")
+
 
