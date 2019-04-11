@@ -1,17 +1,17 @@
 ##################################################################
 
-#PROGRAMA PARA LA MEDICIÓN DE LA POBREZA 2016
+#PROGRAMA PARA LA MEDICI?N DE LA POBREZA 2016
 
 ##################################################################
 
-#Todas las bases de datos del Modelo Estadístico 2016 para la continuidad del MCS-ENIGH pueden ser obtenidas en la página de 
+#Todas las bases de datos del Modelo Estad?stico 2016 para la continuidad del MCS-ENIGH pueden ser obtenidas en la p?gina de 
 #Internet del INEGI, www.inegi.org.mx, y deben estar en formato  *.dbf. 
 
-#Este programa debe ser utilizado con la versión 3.4.1. 
+#Este programa debe ser utilizado con la versi?n 3.4.1. 
 
 #En este programa se utilizan las siguientes bases:
 #Base hogares: hogares.dbf
-#Base población:poblacion.dbf
+#Base poblaci?n:poblacion.dbf
 #Base de ingresos: ingresos.dbf
 #Base de concentrado: concentradohogar.dbf
 #Base de trabajos: trabajos.dbf
@@ -19,14 +19,14 @@
 #Bases de no monetario: gastospersona.dbf y gastoshogar.dbf
 
 #En este programa se utilizan dos tipos de archivos: bases originales y bases generadas. 
-#El primero es el directorio donde se encuentran las bases del Modelo Estadístico 2016 para la continuidad del MCS-ENIGH
+#El primero es el directorio donde se encuentran las bases del Modelo Estad?stico 2016 para la continuidad del MCS-ENIGH
 #En el segundo se guardan las bases de datos generadas por el programa
 #Estos se ubican en las siguientes carpetas:
 
 #1) Bases originales: "C:/Bases de datos"
 #2) Bases generadas: "C:/Bases"
 
-#Se instalan los paquetes y librerías a utilizar en el programa
+#Se instalan los paquetes y librer?as a utilizar en el programa
 install.packages(c("multcomp","mvtnorm","survival","splines","car","doBy","reshape","data.table","rgl","relimp","lmtest","leaps","Hmisc","effects","colorspace","aplpack","abind","RODBC", "mvtnorm"))
 library(foreign)
 library(car)
@@ -37,105 +37,105 @@ library(stats)
 
 rm(list = ls())
 
-#Se define el directorio raíz de las bases de datos
+#Se define el directorio ra?z de las bases de datos
 setwd("C:/")
 
 memory.size()
 
-#########PROGRAMA PARA LA MEDICIÓN DE LA POBREZA 2016###########
+#########PROGRAMA PARA LA MEDICI?N DE LA POBREZA 2016###########
 
+# 
+# ##Parte I Indicadores de Privaci?n Social:
+# ##INDICADOR DE CARENCIA POR REZAGO EDUCATIVO
+# 
+# poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
+# names(poblacion1 ) =  tolower(names(poblacion1))
+# #Poblaci?n objeto: no se incluye a hu?spedes ni trabajadores dom?sticos
+# poblacion2<-as.numeric(poblacion1$parentesco)
+# index=((poblacion2>=400 & poblacion2<500)| (poblacion2>=700 & poblacion2 <800))
+# index=(index==FALSE)
+# poblacion=poblacion1[index,]
+# 
+# #A?o de nacimiento
+# anio_med=2016
+# 
+# attach(poblacion)
+# 
+# poblacion$anac_e=anio_med-edad
+# 
+# 
+# #Inasistencia escolar (se reporta para personas de 3 a?os o m?s)
+# poblacion$inas_esc=NA
+# poblacion$inas_esc=recode(asis_esc, "1=0; 2=1; else=NA")
+# 
+# ##Nivel educativo
+# poblacion$nivelaprob<-as.numeric(nivelaprob)
+# poblacion$gradoaprob<-as.numeric(gradoaprob)
+# poblacion$antec_esc<-as.numeric(antec_esc) 
+# detach(poblacion)
+# 
+# attach(poblacion)
+# 
+# poblacion$niv_ed=NA
+# poblacion$niv_ed[(nivelaprob<2) | (nivelaprob==2 & gradoaprob<6)]=0 #"Con primaria incompleta o menos" 
+# 
+# poblacion$niv_ed[(nivelaprob==2 & gradoaprob==6) | (nivelaprob==3 & gradoaprob<3) |
+#                    (nivelaprob==5 | nivelaprob==6) & gradoaprob<3 & antec_esc==1]=1 # "Primaria completa o secundaria incompleta"
+# 
+# poblacion$niv_ed[((nivelaprob==3 & gradoaprob==3) | (nivelaprob==4) | (nivelaprob==5 & antec_esc==1 & gradoaprob>=3) |  
+#                     (nivelaprob==6 & antec_esc==1 & gradoaprob>=3) | (nivelaprob==5 & antec_esc>=2) | (nivelaprob==6 & antec_esc>=2) | (nivelaprob>=7))]=2 #"Secundaria completa o mayor nivel educativo" 
+# 
+# detach(poblacion)
+# table(poblacion$niv_ed)
+# 
+# ##Indicador de carencia por rezago educativo
+# 
+# #Se considera en situaci?n de carencia por rezago educativo 
+# #a la poblaci?n que cumpla con alguno de los siguientes criterios:
+# 
+# #1. Se encuentra entre los 3 y los 15 a?os y no ha terminado la educaci?n 
+# #obligatoria (secundaria terminada) o no asiste a la escuela.
+# #2. Tiene una edad de 16 a?os o m?s, su a?o de nacimiento aproximado es 1981 
+# #o anterior, y no dispone de primaria completa.
+# #3. Tiene una edad de 16 a?os o m?s, su a?o de nacimiento aproximado es 1982 
+# #en adelante, y no dispone de primaria secundaria completa.
+# 
+# attach(poblacion)
+# poblacion$ic_rezedu=NA
+# poblacion$ic_rezedu[(edad>=3 & edad<=15) & inas_esc==1 & (niv_ed==0 | niv_ed==1)]=1
+# poblacion$ic_rezedu[(edad>=16) & (anac_e>=1982) & (niv_ed==0 | niv_ed==1)]=1
+# poblacion$ic_rezedu[(edad>=16) & (anac_e<=1981) & (niv_ed==0)]=1
+# poblacion$ic_rezedu[(edad>=0 & edad<=2)]=0
+# poblacion$ic_rezedu[(edad>=3 & edad<=15) & inas_esc==0]=0
+# poblacion$ic_rezedu[(edad>=3 & edad<=15) & inas_esc==1 & (niv_ed==2)]=0
+# poblacion$ic_rezedu[(edad>=16) & (anac_e>=1982) & (niv_ed==2)]=0
+# poblacion$ic_rezedu[(edad>=16) & (anac_e<=1981) & (niv_ed==1 | niv_ed==2)]=0
+# #detach(poblacion)
+# 
+# ##Poblaci?n ind?gena
+# poblacion$hablaind<-as.numeric(hablaind)
+# 
+# poblacion$hli=NA
+# poblacion$hli[(edad>=3 & hablaind==1)]=1
+# poblacion$hli[(edad>=3 & hablaind==2)]=0
+# 
+# table(poblacion$hli)
+# table(poblacion$ic_rezedu)
+# 
+# poblacion=poblacion[,c("folioviv", "foliohog", "numren", "edad", "anac_e", "inas_esc", "antec_esc", "niv_ed", "ic_rezedu", "hli")]
+# poblacion <- orderBy(~+folioviv+foliohog+numren, data=poblacion)
+# 
+# write.csv(poblacion, 'Bases/ic_rezedu16.csv', row.names = FALSE)
+# write.dbf(poblacion, 'Bases/ic_rezedu16.dbf')
+# detach(poblacion)
 
-##Parte I Indicadores de Privación Social:
-##INDICADOR DE CARENCIA POR REZAGO EDUCATIVO
-
-poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
-names(poblacion1 ) =  tolower(names(poblacion1))
-#Población objeto: no se incluye a huéspedes ni trabajadores domésticos
-poblacion2<-as.numeric(poblacion1$parentesco)
-index=((poblacion2>=400 & poblacion2<500)| (poblacion2>=700 & poblacion2 <800))
-index=(index==FALSE)
-poblacion=poblacion1[index,]
-
-#Año de nacimiento
-anio_med=2016
-
-attach(poblacion)
-
-poblacion$anac_e=anio_med-edad
-
-
-#Inasistencia escolar (se reporta para personas de 3 años o más)
-poblacion$inas_esc=NA
-poblacion$inas_esc=recode(asis_esc, "1=0; 2=1; else=NA")
-
-##Nivel educativo
-poblacion$nivelaprob<-as.numeric(nivelaprob)
-poblacion$gradoaprob<-as.numeric(gradoaprob)
-poblacion$antec_esc<-as.numeric(antec_esc) 
-detach(poblacion)
-
-attach(poblacion)
-
-poblacion$niv_ed=NA
-poblacion$niv_ed[(nivelaprob<2) | (nivelaprob==2 & gradoaprob<6)]=0 #"Con primaria incompleta o menos" 
-
-poblacion$niv_ed[(nivelaprob==2 & gradoaprob==6) | (nivelaprob==3 & gradoaprob<3) |
-                   (nivelaprob==5 | nivelaprob==6) & gradoaprob<3 & antec_esc==1]=1 # "Primaria completa o secundaria incompleta"
-
-poblacion$niv_ed[((nivelaprob==3 & gradoaprob==3) | (nivelaprob==4) | (nivelaprob==5 & antec_esc==1 & gradoaprob>=3) |  
-                    (nivelaprob==6 & antec_esc==1 & gradoaprob>=3) | (nivelaprob==5 & antec_esc>=2) | (nivelaprob==6 & antec_esc>=2) | (nivelaprob>=7))]=2 #"Secundaria completa o mayor nivel educativo" 
-
-detach(poblacion)
-table(poblacion$niv_ed)
-
-##Indicador de carencia por rezago educativo
-
-#Se considera en situación de carencia por rezago educativo 
-#a la población que cumpla con alguno de los siguientes criterios:
-
-#1. Se encuentra entre los 3 y los 15 años y no ha terminado la educación 
-#obligatoria (secundaria terminada) o no asiste a la escuela.
-#2. Tiene una edad de 16 años o más, su año de nacimiento aproximado es 1981 
-#o anterior, y no dispone de primaria completa.
-#3. Tiene una edad de 16 años o más, su año de nacimiento aproximado es 1982 
-#en adelante, y no dispone de primaria secundaria completa.
-
-attach(poblacion)
-poblacion$ic_rezedu=NA
-poblacion$ic_rezedu[(edad>=3 & edad<=15) & inas_esc==1 & (niv_ed==0 | niv_ed==1)]=1
-poblacion$ic_rezedu[(edad>=16) & (anac_e>=1982) & (niv_ed==0 | niv_ed==1)]=1
-poblacion$ic_rezedu[(edad>=16) & (anac_e<=1981) & (niv_ed==0)]=1
-poblacion$ic_rezedu[(edad>=0 & edad<=2)]=0
-poblacion$ic_rezedu[(edad>=3 & edad<=15) & inas_esc==0]=0
-poblacion$ic_rezedu[(edad>=3 & edad<=15) & inas_esc==1 & (niv_ed==2)]=0
-poblacion$ic_rezedu[(edad>=16) & (anac_e>=1982) & (niv_ed==2)]=0
-poblacion$ic_rezedu[(edad>=16) & (anac_e<=1981) & (niv_ed==1 | niv_ed==2)]=0
-#detach(poblacion)
-
-##Población indígena
-poblacion$hablaind<-as.numeric(hablaind)
-
-poblacion$hli=NA
-poblacion$hli[(edad>=3 & hablaind==1)]=1
-poblacion$hli[(edad>=3 & hablaind==2)]=0
-
-table(poblacion$hli)
-table(poblacion$ic_rezedu)
-
-poblacion=poblacion[,c("folioviv", "foliohog", "numren", "edad", "anac_e", "inas_esc", "antec_esc", "niv_ed", "ic_rezedu", "hli")]
-poblacion <- orderBy(~+folioviv+foliohog+numren, data=poblacion)
-
-write.csv(poblacion, 'Bases/ic_rezedu16.csv', row.names = FALSE)
-write.dbf(poblacion, 'Bases/ic_rezedu16.dbf')
-detach(poblacion)
-
-##Parte II Indicadores de Privación Social:
+##Parte II Indicadores de Privaci?n Social:
 ##INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS DE SALUD
 
 rm(list = ls())
 trabajos <- read.dbf("Bases de datos/trabajos.dbf",as.is = TRUE)
 
-##Tipo de trabajador: identifica la población subordinada e independiente
+##Tipo de trabajador: identifica la poblaci?n subordinada e independiente
 attach(trabajos)
 
 #Subordinados
@@ -150,12 +150,12 @@ trabajos$tipo_trab[subor==2 & indep==2 & pago==1]=2
 trabajos$tipo_trab[subor==2 & indep==1 & tiene_suel==2]=3
 trabajos$tipo_trab[subor==2 & indep==2 & (pago==2| pago==3)]=3
 
-#Ocupación principal o secundaria
+#Ocupaci?n principal o secundaria
 trabajos$ocupa=NA
 trabajos$ocupa[id_trabajo==1]=1
 trabajos$ocupa[id_trabajo==2]=0
 
-#Distinción de prestaciones en trabajo principal y secundario
+#Distinci?n de prestaciones en trabajo principal y secundario
 trabajos=trabajos[, c( "folioviv", "foliohog", "numren", "id_trabajo", "tipo_trab", "ocupa")]
 trabajos2=reshape(trabajos, idvar = c("folioviv", "foliohog", "numren"), timevar = "id_trabajo", direction = "wide")
 detach(trabajos)
@@ -168,7 +168,7 @@ detach(trabajos2)
 
 names(trabajos2 )[4:6]<-c("tipo_trab1","ocupa1","tipo_trab2" )
 
-#Identificación de la población trabajadora (toda la que reporta al menos un empleo en la base de trabajos.dbf)
+#Identificaci?n de la poblaci?n trabajadora (toda la que reporta al menos un empleo en la base de trabajos.dbf)
 trabajos2$trab=1
 table(trabajos2$trab)
 
@@ -178,10 +178,10 @@ write.csv(trabajos2, 'Bases/ocupados16.csv', row.names = FALSE)
 write.dbf(trabajos2, 'Bases/ocupados16.dbf')
 
 rm(list = ls())
-#Integración de la bases
+#Integraci?n de la bases
 poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
 names(poblacion1) =  tolower(names(poblacion1))
-#Población objeto: no se incluye a huéspedes ni trabajadores domésticos
+#Poblaci?n objeto: no se incluye a hu?spedes ni trabajadores dom?sticos
 poblacion2<-as.numeric(poblacion1$parentesco)
 index=((poblacion2>=400 & poblacion2<500)| (poblacion2>=700 & poblacion2 <800))
 index=(index==FALSE)
@@ -193,7 +193,7 @@ ocupados=read.dbf('Bases/ocupados16.dbf',as.is = TRUE)
 poblacion= merge(poblacion, ocupados,by.x=c("folioviv", "foliohog", "numren"), all.x = TRUE)
 rm(ocupados)
 
-#PEA (personas de 16 años o más)
+#PEA (personas de 16 a?os o m?s)
 attach(poblacion)
 poblacion$pea=NA
 poblacion$pea[(trab==1 & (edad>=16 & is.na(edad)==FALSE))]=1
@@ -207,39 +207,39 @@ detach(poblacion)
 
 #Tipo de trabajo
 
-#Ocupación principal
+#Ocupaci?n principal
 attach(poblacion)
 poblacion$tipo_trab1[pea==1 & is.na(tipo_trab1)==FALSE & is.na(pea)==FALSE]=poblacion$tipo_trab1[pea==1 & is.na(tipo_trab1)==FALSE & is.na(pea)==FALSE]
 poblacion$tipo_trab1[(pea==0 | pea==2)]=NA
 poblacion$tipo_trab1[is.na(pea)==TRUE]=NA
 
 
-#Ocupación secundaria
+#Ocupaci?n secundaria
 poblacion$tipo_trab2[pea==1 & is.na(tipo_trab2)==FALSE & is.na(pea)==FALSE]=poblacion$tipo_trab2[pea==1 & is.na(tipo_trab2)==FALSE & is.na(pea)==FALSE]
 poblacion$tipo_trab2[(pea==0 | pea==2)]=NA
 poblacion$tipo_trab2[is.na(pea)==TRUE]=NA
 
 
 
-#Prestaciones básicas 
+#Prestaciones b?sicas 
 
-#Prestaciones laborales (Servicios médicos)
+#Prestaciones laborales (Servicios m?dicos)
 
-#Ocupación principal
+#Ocupaci?n principal
 poblacion$smlab1=NA
 poblacion$smlab1[ocupa1==1 & atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_1==1)]=1
 poblacion$smlab1[ocupa1==1 & is.na(poblacion$smlab1)==TRUE]=0
 
 
-#Ocupación secundaria
+#Ocupaci?n secundaria
 poblacion$smlab2=NA
 poblacion$smlab2[ocupa2==1 & atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_1==1)]=1
 poblacion$smlab2[ocupa2==1 & is.na(poblacion$smlab2)==TRUE]=0
 
 
-#Contratación voluntaria: servicios médicos 
+#Contrataci?n voluntaria: servicios m?dicos 
 
-#Servicios médicos
+#Servicios m?dicos
 poblacion$smcv=NA
 poblacion$smcv[atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_6==6) & (edad>=12 & edad<=97)]=1
 poblacion$smcv[(edad>=12 & edad<=97) & is.na(poblacion$smcv)==TRUE]=0
@@ -247,19 +247,19 @@ detach(poblacion)
 
 #Acceso directo a servicios de salud
 
-#Ocupación principal
+#Ocupaci?n principal
 attach(poblacion)
 poblacion$sa_dir=NA
 poblacion$sa_dir[tipo_trab1==1 & smlab1==1]=1
 poblacion$sa_dir[tipo_trab1==2 & (smlab1==1 | smcv==1)]=1
 poblacion$sa_dir[tipo_trab1==3 & (smlab1==1 | smcv==1)]=1
 
-#Ocupación secundaria
+#Ocupaci?n secundaria
 poblacion$sa_dir[tipo_trab2==1 & smlab2==1]=1
 poblacion$sa_dir[tipo_trab2==2 & (smlab2==1 | smcv==1)]=1
 poblacion$sa_dir[tipo_trab2==3 & (smlab2==1 | smcv==1)]=1
 
-#Núcleos familiares
+#N?cleos familiares
 parent<-as.numeric(poblacion$parentesco)
 poblacion$par=6
 poblacion$par[(parent>=100 & parent<200)]=1
@@ -268,7 +268,7 @@ poblacion$par[(parent>=300 & parent<400)]=3
 poblacion$par[parent==601]=4
 poblacion$par[parent==615]=5
 
-#Asimismo, se utilizará la información relativa a la asistencia a la escuela
+#Asimismo, se utilizar? la informaci?n relativa a la asistencia a la escuela
 poblacion$inas_esc=NA
 poblacion$inas_esc[asis_esc==1]=0
 poblacion$inas_esc[asis_esc==2]=1
@@ -321,10 +321,10 @@ poblacion$hijo_sa=0
 poblacion$hijo_sa[(hijo_1>=1 & is.na(hijo_1)==FALSE)]=1
 table(poblacion$hijo_sa)
 
-#Otros núcleos familiares: se identifica a la población con acceso a los servicios
-#de salud mediante otros núcleos familiares a través de la afiliación
-#o inscripción a servicios de salud por algún familiar dentro o 
-#fuera del hogar, muerte del asegurado o por contratación propia
+#Otros n?cleos familiares: se identifica a la poblaci?n con acceso a los servicios
+#de salud mediante otros n?cleos familiares a trav?s de la afiliaci?n
+#o inscripci?n a servicios de salud por alg?n familiar dentro o 
+#fuera del hogar, muerte del asegurado o por contrataci?n propia
 poblacion$s_salud=NA
 poblacion$s_salud[atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_3==3 | inscr_4==4 | inscr_6==6 | inscr_7==7)]=1
 poblacion$s_salud[is.na(segpop)==FALSE & is.na(atemed)==FALSE & is.na(poblacion$s_salud)==TRUE ]=0
@@ -335,11 +335,11 @@ detach(poblacion)
 
 attach(poblacion)
 #Indicador de carencia por acceso a los servicios de salud
-#Se considera en situación de carencia por acceso a servicios de salud
-#a la población que:
+#Se considera en situaci?n de carencia por acceso a servicios de salud
+#a la poblaci?n que:
 #1. No se encuentra afiliada o inscrita al Seguro Popular o alguna 
-#institución que proporcione servicios médicos, ya sea por prestación laboral,
-#contratación voluntaria o afiliación de un familiar por parentesco directo 
+#instituci?n que proporcione servicios m?dicos, ya sea por prestaci?n laboral,
+#contrataci?n voluntaria o afiliaci?n de un familiar por parentesco directo 
 
 poblacion$ic_asalud=1
 
@@ -350,7 +350,7 @@ poblacion$ic_asalud[sa_dir==1]=0
 poblacion$ic_asalud[par==1 & cony_sa==1]=0
 poblacion$ic_asalud[par==1 & pea==0 & hijo_sa==1]=0
 
-#Parentesco directo: cónyuge 
+#Parentesco directo: c?nyuge 
 poblacion$ic_asalud[par==2 & jef_sa==1]=0
 poblacion$ic_asalud[par==2 & pea==0 & hijo_sa==1]=0
 
@@ -364,14 +364,14 @@ poblacion$ic_asalud[par==3 & (edad>=16 & edad<=25) & inas_esc==0 & cony_sa==1]=0
 poblacion$ic_asalud[par==4 & pea==0 & jef_sa==1]=0
 poblacion$ic_asalud[par==5 & pea==0 & cony_sa==1]=0
 
-#Otros núcleos familiares
+#Otros n?cleos familiares
 poblacion$ic_asalud[s_salud==1]=0
 
 #Acceso reportado
 poblacion$ic_asalud[segpop==1 | (segpop==2 & atemed==1 &(inst_1=="1" |inst_2=="2" |inst_3=="3" |inst_4=="4" | inst_5=="5" | inst_6=="6"  ) ) | segvol_2=="2"]=0
 
 
-##Población con al menos alguna discapacidad, sea física o mental
+##Poblaci?n con al menos alguna discapacidad, sea f?sica o mental
 
 poblacion$discap=0
 poblacion$discap[(disc1>=1 & disc1<=7)]=1
@@ -394,13 +394,13 @@ poblacion <- orderBy(~+folioviv+foliohog+numren, data=poblacion)
 write.csv(poblacion, 'Bases/ic_asalud16.csv', row.names = FALSE)
 write.dbf(poblacion, 'Bases/ic_asalud16.dbf')
 
-##Parte III Indicadores de Privación social:
+##Parte III Indicadores de Privaci?n social:
 ##INDICADOR DE CARENCIA POR ACCESO A LA SEGURIDAD SOCIAL
 
 rm(list = ls())
 trabajos <- read.dbf("Bases de datos/trabajos.dbf",as.is = TRUE)
 
-##Tipo de trabajador: identifica la población subordinada e independiente
+##Tipo de trabajador: identifica la poblaci?n subordinada e independiente
 attach(trabajos)
 
 #Subordinados
@@ -425,12 +425,12 @@ trabajos$aforlab=NA
 trabajos$aforlab[is.na(pres_14)==TRUE]=0
 trabajos$aforlab[pres_14=="14"]=1
 
-#Ocupación principal o secundaria
+#Ocupaci?n principal o secundaria
 trabajos$ocupa=NA
 trabajos$ocupa[id_trabajo==1]=1
 trabajos$ocupa[id_trabajo==2]=0
 
-#Distinción de prestaciones en trabajo principal y secundario
+#Distinci?n de prestaciones en trabajo principal y secundario
 trabajos=trabajos[, c("folioviv", "foliohog", "numren", "id_trabajo", "tipo_trab", "inclab", "aforlab", "ocupa")]
 trabajos2=reshape(trabajos, idvar = c("folioviv", "foliohog", "numren"), timevar = "id_trabajo", direction = "wide")
 detach(trabajos)
@@ -444,7 +444,7 @@ detach(trabajos2)
 names(trabajos2 )[4:10] <- c("tipo_trab1", "inclab1", "aforlab1", "ocupa1", "tipo_trab2", "inclab2", "aforlab2")
 trabajos2 <- trabajos2[,-(5:6)] #Se eliminan las variales: "inclab1", "aforlab1"
 
-#Identificación de la población trabajadora (toda la que reporta al menos un empleo en la base de trabajos)
+#Identificaci?n de la poblaci?n trabajadora (toda la que reporta al menos un empleo en la base de trabajos)
 trabajos2$trab=1
 table(trabajos2$trab)
 
@@ -484,13 +484,13 @@ ingresos2 <- orderBy(~+folioviv+foliohog+numren, data=ingresos2)
 write.csv(ingresos2, 'Bases/pensiones16.csv', row.names = FALSE)
 write.dbf(ingresos2, 'Bases/pensiones16.dbf')
 
-#Construcción del indicador
+#Construcci?n del indicador
 
 rm(list = ls())
 
 poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
 names(poblacion1) =  tolower(names(poblacion1))
-#Población objeto: no se incluye a huéspedes ni trabajadores domésticos
+#Poblaci?n objeto: no se incluye a hu?spedes ni trabajadores dom?sticos
 
 poblacion2<-as.numeric(poblacion1$parentesco)
 index=((poblacion2>=400 & poblacion2<500)| (poblacion2>=700 & poblacion2 <800))
@@ -506,7 +506,7 @@ pensiones=read.dbf('Bases/pensiones16.dbf',as.is = TRUE)
 poblacion= merge(poblacion, pensiones,by.x=c("folioviv", "foliohog", "numren"), all.x = TRUE)
 rm(pensiones)
 
-#PEA (personas de 16 años o más)
+#PEA (personas de 16 a?os o m?s)
 attach(poblacion)
 poblacion$pea=NA
 poblacion$pea[(trab==1 & (edad>=16 & is.na(edad)==FALSE))]=1
@@ -520,14 +520,14 @@ detach(poblacion)
 
 #Tipo de trabajo
 
-#Ocupación principal
+#Ocupaci?n principal
 attach(poblacion)
 poblacion$tipo_trab1[pea==1 & is.na(tipo_trab1)==FALSE & is.na(pea)==FALSE]=poblacion$tipo_trab1[pea==1 & is.na(tipo_trab1)==FALSE & is.na(pea)==FALSE]
 poblacion$tipo_trab1[(pea==0 | pea==2)]=NA
 poblacion$tipo_trab1[is.na(pea)==TRUE]=NA
 
 
-#Ocupación secundaria
+#Ocupaci?n secundaria
 poblacion$tipo_trab2[pea==1 & is.na(tipo_trab2)==FALSE & is.na(pea)==FALSE]=poblacion$tipo_trab2[pea==1 & is.na(tipo_trab2)==FALSE & is.na(pea)==FALSE]
 poblacion$tipo_trab2[(pea==0 | pea==2)]=NA
 poblacion$tipo_trab2[is.na(pea)==TRUE]=NA
@@ -540,26 +540,26 @@ poblacion$jub[inscr_2==2]=1
 poblacion$jub[is.na(poblacion$jub)==TRUE]=0
 
 
-#Prestaciones básicas 
+#Prestaciones b?sicas 
 
-#Prestaciones laborales (Servicios médicos)
+#Prestaciones laborales (Servicios m?dicos)
 
-#Ocupación principal
+#Ocupaci?n principal
 poblacion$smlab1=NA
 poblacion$smlab1[ocupa1==1 & atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_1==1)]=1
 poblacion$smlab1[ocupa1==1 & is.na(poblacion$smlab1)==TRUE]=0
 
 
 
-#Ocupación secundaria
+#Ocupaci?n secundaria
 poblacion$smlab2=NA
 poblacion$smlab2[ocupa2==1 & atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_1==1)]=1
 poblacion$smlab2[ocupa2==1 & is.na(poblacion$smlab2)==TRUE]=0
 
 
-#Contratación voluntaria: servicios médicos y SAR o Afore
+#Contrataci?n voluntaria: servicios m?dicos y SAR o Afore
 
-#Servicios médicos
+#Servicios m?dicos
 poblacion$smcv=NA
 poblacion$smcv[atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_6==6) & (edad>=12 & edad<=97)]=1
 poblacion$smcv[(edad>=12 & edad<=97) & is.na(poblacion$smcv)==TRUE]=0
@@ -577,14 +577,14 @@ names(poblacion)[181:182] <- c("aforlab1", "inclab1")
 
 #Acceso directo a la seguridad social
 
-#Ocupación principal
+#Ocupaci?n principal
 attach(poblacion)
 poblacion$ss_dir=NA
 poblacion$ss_dir[tipo_trab1==1 & (smlab1==1 & inclab1==1 & aforlab1==1)]=1
 poblacion$ss_dir[tipo_trab1==2 & ((smlab1==1 | smcv==1) & (aforlab1==1 | aforecv==1))]=1
 poblacion$ss_dir[tipo_trab1==3 & ((smlab1==1 | smcv==1) & aforecv==1)]=1
 
-#Ocupación secundaria
+#Ocupaci?n secundaria
 poblacion$ss_dir[tipo_trab2==1 & (smlab2==1 & inclab2==1 & aforlab2==1)]=1
 poblacion$ss_dir[tipo_trab2==2 & ((smlab2==1 | smcv==1) & (aforlab2==1 | aforecv==1))]=1
 poblacion$ss_dir[tipo_trab2==3 & ((smlab2==1 | smcv==1) & aforecv==1)]=1
@@ -594,7 +594,7 @@ poblacion$ss_dir[jub==1]=1
 poblacion$ss_dir[is.na(poblacion$ss_dir)==TRUE]=0
 
 
-#Núcleos familiares
+#N?cleos familiares
 parent<-as.numeric(poblacion$parentesco)
 poblacion$par=6
 poblacion$par[(parent>=100 & parent<200)]=1
@@ -605,7 +605,7 @@ poblacion$par[parent==615]=5
 table(poblacion$par)
 
 
-#Asimismo, se utilizará la información relativa a la asistencia a la escuela
+#Asimismo, se utilizar? la informaci?n relativa a la asistencia a la escuela
 poblacion$inas_esc=NA
 poblacion$inas_esc[asis_esc==1]=0
 poblacion$inas_esc[asis_esc==2]=1
@@ -658,10 +658,10 @@ poblacion$hijo_ss=0
 poblacion$hijo_ss[(hijo_1>=1 & is.na(hijo_1)==FALSE)]=1
 table( poblacion$hijo_ss)
 
-#Otros núcleos familiares: se identifica a la población con acceso a la seguridad
-#social mediante otros núcleos familiares a través de la afiliación
-#o inscripción a servicios de salud por algún familiar dentro o 
-#fuera del hogar, muerte del asegurado o por contratación propia
+#Otros n?cleos familiares: se identifica a la poblaci?n con acceso a la seguridad
+#social mediante otros n?cleos familiares a trav?s de la afiliaci?n
+#o inscripci?n a servicios de salud por alg?n familiar dentro o 
+#fuera del hogar, muerte del asegurado o por contrataci?n propia
 poblacion$s_salud=NA
 poblacion$s_salud[atemed==1 & (inst_1==1 | inst_2==2 | inst_3==3 | inst_4==4) & (inscr_3==3 | inscr_4==4 | inscr_6==6 | inscr_7==7)]=1
 poblacion$s_salud[is.na(segpop)==FALSE & is.na(atemed)==FALSE & is.na(poblacion$s_salud)==TRUE ]=0
@@ -676,19 +676,19 @@ table(poblacion$pam)
 detach(poblacion)
 
 #Indicador de carencia por acceso a la seguridad social
-#No se considera en situación de carencia por acceso a la seguridad social
-#a la población que:
+#No se considera en situaci?n de carencia por acceso a la seguridad social
+#a la poblaci?n que:
 #1. Disponga de acceso directo a la seguridad social,
 #2. Cuente con parentesco directo con alguna persona dentro del hogar
 #que tenga acceso directo,
-#3. Reciba servicios médicos por parte de algún familiar dentro o
-#fuera del hogar, por muerte del asegurado o por contratación propia, o,
+#3. Reciba servicios m?dicos por parte de alg?n familiar dentro o
+#fuera del hogar, por muerte del asegurado o por contrataci?n propia, o,
 #4. Reciba ingresos por parte de un programa de adultos mayores. 
 
-#Se considera en situación de carencia por acceso a la seguridad social
-#aquella población:
+#Se considera en situaci?n de carencia por acceso a la seguridad social
+#aquella poblaci?n:
 
-#1. En cualquier otra situación.
+#1. En cualquier otra situaci?n.
 
 attach(poblacion)
 
@@ -702,7 +702,7 @@ poblacion$ic_segsoc[ss_dir==1]=0
 poblacion$ic_segsoc[par==1 & cony_ss==1]=0
 poblacion$ic_segsoc[par==1 & pea==0 & hijo_ss==1]=0
 
-#Parentesco directo: cónyuge 
+#Parentesco directo: c?nyuge 
 poblacion$ic_segsoc[par==2 & jef_ss==1]=0
 poblacion$ic_segsoc[par==2 & pea==0 & hijo_ss==1]=0
 
@@ -716,7 +716,7 @@ poblacion$ic_segsoc[par==3 & (edad>=16 & edad<=25) & inas_esc==0 & cony_ss==1]=0
 poblacion$ic_segsoc[par==4 & pea==0 & jef_ss==1]=0
 poblacion$ic_segsoc[par==5 & pea==0 & cony_ss==1]=0
 
-#Otros núcleos familiares
+#Otros n?cleos familiares
 poblacion$ic_segsoc[s_salud==1]=0
 
 #Programa de adultos mayores
@@ -742,10 +742,10 @@ poblacion <- orderBy(~+folioviv+foliohog+numren, data=poblacion)
 write.csv(poblacion, 'Bases/ic_segsoc16.csv', row.names = FALSE)
 write.dbf(poblacion, 'Bases/ic_segsoc16.dbf')
 
-#Parte IV Indicadores de Privación social:
+#Parte IV Indicadores de Privaci?n social:
 #INDICADOR DE CARENCIA POR CALIDAD Y ESPACIOS EN LA VIVIENDA
 
-#Material de construcción de la vivienda
+#Material de construcci?n de la vivienda
 rm(list = ls())
 
 hogares<- read.dbf('Bases de datos/hogares.dbf',as.is = TRUE)
@@ -770,7 +770,7 @@ hogares2$tot_resid<-as.numeric(tot_resid)
 hogares2$num_cuarto<-as.numeric(num_cuarto)
 detach(hogares2)
 
-#Índice de hacinamiento
+#?ndice de hacinamiento
 hogares2$cv_hac= hogares2$tot_resid/hogares2$num_cuarto
 
 #detach(hogares2)
@@ -794,7 +794,7 @@ hogares2$icv_muros[mat_muros<=5]=1
 hogares2$icv_muros[mat_muros>5 & is.na(mat_muros)==FALSE]=0
 table(hogares2$icv_muros)
 
-#Indicador de carencia por índice de hacinamiento de la vivienda
+#Indicador de carencia por ?ndice de hacinamiento de la vivienda
 hogares2$icv_hac=NA
 hogares2$icv_hac[cv_hac>2.5 & is.na(cv_hac)==FALSE]=1
 hogares2$icv_hac[cv_hac<=2.5]=0
@@ -804,16 +804,16 @@ detach(hogares2)
 
 #Indicador de carencia por calidad y espacios de la vivienda;
 
-#Se considera en situación de carencia por calidad y espacios 
-#de la vivienda a la población que:
+#Se considera en situaci?n de carencia por calidad y espacios 
+#de la vivienda a la poblaci?n que:
 
-#1. Presente carencia en cualquiera de los subindicadores de esta dimensión
+#1. Presente carencia en cualquiera de los subindicadores de esta dimensi?n
 
-#No se considera en situación de carencia por rezago calidad y espacios 
-#de la vivienda a la población que:
+#No se considera en situaci?n de carencia por rezago calidad y espacios 
+#de la vivienda a la poblaci?n que:
 
 #1. Habite en una vivienda sin carencia en todos los subindicadores
-#de esta dimensión
+#de esta dimensi?n
 
 attach(hogares2)
 
@@ -835,8 +835,8 @@ write.csv(hogares2, 'Bases/ic_cev16.csv', row.names = FALSE)
 write.dbf(hogares2, 'Bases/ic_cev16.dbf')
 
 
-#Parte V Indicadores de Privación Social:
-#INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS BÁSICOS EN LA VIVIENDA
+#Parte V Indicadores de Privaci?n Social:
+#INDICADOR DE CARENCIA POR ACCESO A LOS SERVICIOS B?SICOS EN LA VIVIENDA
 
 rm(list = ls())
 
@@ -909,17 +909,17 @@ hogares$isb_combus[(combusv==1 | combusv==2) & estufa_chi=="1" & is.na(combusv)=
 hogares$isb_combus[ combusv>=3 & combusv<=6 & is.na(combusv)==FALSE]=0
 table( hogares$isb_combus)
 detach(hogares)
-#Indicador de carencia por acceso a los servicios básicos en la vivienda;
-#Se considera en situación de carencia por servicios básicos en la vivienda 
-#a la población que:
+#Indicador de carencia por acceso a los servicios b?sicos en la vivienda;
+#Se considera en situaci?n de carencia por servicios b?sicos en la vivienda 
+#a la poblaci?n que:
 
-#1. Presente carencia en cualquiera de los subindicadores de esta dimensión
+#1. Presente carencia en cualquiera de los subindicadores de esta dimensi?n
 
-#No se considera en situación de carencia por  servicios básicos en la vivienda
-#a la población que:
+#No se considera en situaci?n de carencia por  servicios b?sicos en la vivienda
+#a la poblaci?n que:
 
 #1. Habite en una vivienda sin carencia en todos los subindicadores
-#de esta dimensión
+#de esta dimensi?n
 
 attach(hogares)
 hogares$ic_sbv=NA
@@ -941,12 +941,12 @@ write.csv(hogares, 'Bases/ic_sbv16.csv', row.names = FALSE)
 write.dbf(hogares, 'Bases/ic_sbv16.dbf')
 detach(hogares)
 
-#Parte VI Indicadores de Privación Social:
+#Parte VI Indicadores de Privaci?n Social:
 #INDICADOR DE CARENCIA POR ACCESO A LA ALIMENTACION
 
 rm(list = ls())
 
-#Población objeto: no se incluye a huéspedes ni trabajadores domésticos
+#Poblaci?n objeto: no se incluye a hu?spedes ni trabajadores dom?sticos
 poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
 names(poblacion1) =  tolower(names(poblacion1))
 poblacion2<-as.numeric(poblacion1$parentesco)
@@ -956,7 +956,7 @@ poblacion=poblacion1[index,]
 
 
 
-#Indicador de hogares con menores de 18 años
+#Indicador de hogares con menores de 18 a?os
 attach(poblacion)
 poblacion$men=NA
 poblacion$men[edad>=0 & edad<=17]=1
@@ -982,76 +982,76 @@ detach(poblacion2)
 
 hogares <- read.dbf("Bases de datos/hogares.dbf",as.is = TRUE)
 
-#SEIS PREGUNTAS PARA HOGARES SIN POBLACIÓN MENOR A 18 AÑOS
-#Algún adulto tuvo una alimentación basada en muy poca variedad de acc_alimentos
+#SEIS PREGUNTAS PARA HOGARES SIN POBLACI?N MENOR A 18 A?OS
+#Alg?n adulto tuvo una alimentaci?n basada en muy poca variedad de acc_alimentos
 attach(hogares)
 hogares$ia_1ad=NA
 hogares$ia_1ad[acc_alim4==1]=1
 hogares$ia_1ad[acc_alim4==2]=0
 hogares$ia_1ad[is.na(acc_alim4)==TRUE]=0
 
-#Algún adulto dejó de desayunar, comer o cenar
+#Alg?n adulto dej? de desayunar, comer o cenar
 hogares$ia_2ad=NA
 hogares$ia_2ad[acc_alim5==1]=1
 hogares$ia_2ad[acc_alim5==2]=0
 hogares$ia_2ad[is.na(acc_alim5)==TRUE]=0
 
-#Algún adulto comió menos de lo que debía comer
+#Alg?n adulto comi? menos de lo que deb?a comer
 hogares$ia_3ad=NA
 hogares$ia_3ad[acc_alim6==1]=1
 hogares$ia_3ad[acc_alim6==2]=0
 hogares$ia_3ad[is.na(acc_alim6)==TRUE]=0
 
-#El hogar se quedó sin comida
+#El hogar se qued? sin comida
 hogares$ia_4ad=NA
 hogares$ia_4ad[acc_alim2==1]=1
 hogares$ia_4ad[acc_alim2==2]=0
 hogares$ia_4ad[is.na(acc_alim2)==TRUE]=0
 
-#Algún adulto sintió hambre pero no comió
+#Alg?n adulto sinti? hambre pero no comi?
 hogares$ia_5ad=NA
 hogares$ia_5ad[acc_alim7==1]=1
 hogares$ia_5ad[acc_alim7==2]=0
 hogares$ia_5ad[is.na(acc_alim7)==TRUE]=0
 
-#Algún adulto solo comió una vez al día o dejó de comer todo un día
+#Alg?n adulto solo comi? una vez al d?a o dej? de comer todo un d?a
 hogares$ia_6ad=NA
 hogares$ia_6ad[acc_alim8==1]=1
 hogares$ia_6ad[acc_alim8==2]=0
 hogares$ia_6ad[is.na(acc_alim8)==TRUE]=0
 
-#SEIS PREGUNTAS PARA HOGARES CON POBLACIÓN MENOR A 18 AÑOS
-#Alguien de 0 a 17 años tuvo una alimentación basada en muy poca variedad de alimentos
+#SEIS PREGUNTAS PARA HOGARES CON POBLACI?N MENOR A 18 A?OS
+#Alguien de 0 a 17 a?os tuvo una alimentaci?n basada en muy poca variedad de alimentos
 hogares$ia_7men=NA
 hogares$ia_7men[acc_alim11==1]=1
 hogares$ia_7men[acc_alim11==2]=0
 hogares$ia_7men[is.na(acc_alim11)==TRUE]=0
 
-#Alguien de 0 a 17 años comió menos de lo que debía
+#Alguien de 0 a 17 a?os comi? menos de lo que deb?a
 hogares$ia_8men=NA
 hogares$ia_8men[acc_alim12==1]=1
 hogares$ia_8men[acc_alim12==2]=0
 hogares$ia_8men[is.na(acc_alim12)==TRUE]=0
 
-#Se tuvo que disminuir la cantidad servida en las comidas a alguien de 0 a 17 años
+#Se tuvo que disminuir la cantidad servida en las comidas a alguien de 0 a 17 a?os
 hogares$ia_9men=NA
 hogares$ia_9men[acc_alim13==1]=1
 hogares$ia_9men[acc_alim13==2]=0
 hogares$ia_9men[is.na(acc_alim13)==TRUE]=0
 
-#Alguien de 0 a 17 años sintió hambre pero no comió
+#Alguien de 0 a 17 a?os sinti? hambre pero no comi?
 hogares$ia_10men=NA
 hogares$ia_10men[acc_alim14==1]=1
 hogares$ia_10men[acc_alim14==2]=0
 hogares$ia_10men[is.na(acc_alim14)==TRUE]=0
 
-#Alguien de 0 a 17 años se acostó con hambre
+#Alguien de 0 a 17 a?os se acost? con hambre
 hogares$ia_11men=NA
 hogares$ia_11men[acc_alim15==1]=1
 hogares$ia_11men[acc_alim15==2]=0
 hogares$ia_11men[is.na(acc_alim15)==TRUE]=0
 
-#Alguien de 0 a 17 años comió una vez al día o dejó de comer todo un día
+#Alguien de 0 a 17 a?os comi? una vez al d?a o dej? de comer todo un d?a
 hogares$ia_12men=NA
 hogares$ia_12men[acc_alim16==1]=1
 hogares$ia_12men[acc_alim16==2]=0
@@ -1059,17 +1059,17 @@ hogares$ia_12men[is.na(acc_alim16)==TRUE]=0
 detach(hogares)
 
 
-#Construcción de la escala de inseguridad acc_alimentaria
+#Construcci?n de la escala de inseguridad acc_alimentaria
 hogares <- orderBy(~+folioviv+foliohog, data=hogares)
 hogares= merge(hogares, poblacion2, by=c( "folioviv", "foliohog"), all.x = TRUE)
 
 attach(hogares)
-#Escala para hogares sin menores de 18 años
+#Escala para hogares sin menores de 18 a?os
 hogares$tot_iaad=NA
 hogares$tot_iaad[id_men==0]=ia_1ad[id_men==0] + ia_2ad[id_men==0] + ia_3ad[id_men==0] +ia_4ad[id_men==0] + ia_5ad[id_men==0]+ ia_6ad[id_men==0]
 table(hogares$tot_iaad)
 
-#Escala para hogares con menores de 18 años
+#Escala para hogares con menores de 18 a?os
 hogares$tot_iamen=NA
 hogares$tot_iamen[id_men==1]=ia_1ad[id_men==1] + ia_2ad[id_men==1] + ia_3ad[id_men==1] +ia_4ad[id_men==1] + ia_5ad[id_men==1]+ ia_6ad[id_men==1]+ ia_7men[id_men==1]+ ia_8men[id_men==1] + ia_9men[id_men==1] + ia_10men[id_men==1] + ia_11men[id_men==1] + ia_12men[id_men==1]
 table(hogares$tot_iamen)
@@ -1092,14 +1092,14 @@ hogares$ins_ali[(tot_iaad==5 | tot_iaad==6) | (tot_iamen>=8 & is.na(tot_iamen)==
 table(hogares$ins_ali)
 detach(hogares)
 
-#Indicador de carencia por acceso a la alimentación;
-#Se considera en situación de carencia por acceso a la alimentación 
-#a la población en hogares que:
+#Indicador de carencia por acceso a la alimentaci?n;
+#Se considera en situaci?n de carencia por acceso a la alimentaci?n 
+#a la poblaci?n en hogares que:
 
 #1. Presenten inseguridad alimentaria moderada o severa.
 
-#No se considera en situación de carencia por acceso a la alimentación 
-#a la población que:
+#No se considera en situaci?n de carencia por acceso a la alimentaci?n 
+#a la poblaci?n que:
 
 #1. No presente inseguridad alimentaria o presente un grado de inseguridad 
 #alimentaria leve. 
@@ -1123,14 +1123,14 @@ detach(hogares)
 
 #Parte VII Bienestar (ingresos)
 
-#Para la construcción del ingreso corriente del hogar es necesario utilizar
-#información sobre la condición de ocupación y los ingresos de los individuos.
-#Se utiliza la información contenida en la base "trabajos" para 
-#identificar a la población ocupada que declara tener como prestación laboral aguinaldo, 
+#Para la construcci?n del ingreso corriente del hogar es necesario utilizar
+#informaci?n sobre la condici?n de ocupaci?n y los ingresos de los individuos.
+#Se utiliza la informaci?n contenida en la base "trabajos" para 
+#identificar a la poblaci?n ocupada que declara tener como prestaci?n laboral aguinaldo, 
 #ya sea por su trabajo principal o secundario, a fin de incorporar los ingresos por este 
-#concepto en la medición
+#concepto en la medici?n
 
-#Creación del ingreso monetario deflactado a pesos de agosto del 2016.
+#Creaci?n del ingreso monetario deflactado a pesos de agosto del 2016.
 
 #Ingresos
 
@@ -1143,7 +1143,7 @@ trabajos2=reshape(trabajos, idvar = c( "folioviv", "foliohog", "numren"), timeva
 
 names(trabajos2)[4:5] <- c("pres_81", "pres_82")
 
-#Población con al menos un empleo
+#Poblaci?n con al menos un empleo
 trabajos2$trab=1
 
 attach(trabajos2)
@@ -1182,11 +1182,11 @@ rm(ingresos)
 #Una vez realizado lo anterior, se procede a deflactar el ingreso recibido
 #por los hogares a precios de agosto de 2016. Para ello se utilizan las 
 #variables meses, las cuales toman los valores 2 a 10 e indican el mes en
-#que se recibió el ingreso respectivo
+#que se recibi? el ingreso respectivo
 
 ingresos=ingresos3
 
-#Definición de los deflactores 2016
+#Definici?n de los deflactores 2016
 
 
 dic15	=	0.9915096155	
@@ -1265,7 +1265,7 @@ ingresos$ing_1[is.na(ingresos$ing_1)!=TRUE & ingresos$clave=="P009"]= ingresos$i
 ingresos$ing_1[is.na(ingresos$ing_1)!=TRUE & ingresos$clave=="P016"]= ingresos$ing_1[is.na(ingresos$ing_1)!=TRUE & ingresos$clave=="P016"]/dic15/12
 
 
-#Una vez realizada la deflactación, se procede a obtener el ingreso mensual promedio en los últimos seis meses, 
+#Una vez realizada la deflactaci?n, se procede a obtener el ingreso mensual promedio en los ?ltimos seis meses, 
 #para cada persona y clave de ingreso
 ingresos$ing_mens=rowMeans(data.frame(ingresos$ing_1, ingresos$ing_2, ingresos$ing_3, ingresos$ing_4, ingresos$ing_5, ingresos$ing_6), na.rm = TRUE)
 #sum(ingresos$ing_mens, na.rm=TRUE)
@@ -1319,7 +1319,7 @@ ingresos2 <- orderBy(~+folioviv+foliohog, data=ingresos2)
 write.csv(ingresos2, 'Bases/ingreso_deflactado16.csv', row.names = FALSE)
 write.dbf(ingresos2, 'Bases/ingreso_deflactado16.dbf')
 
-#Creación del ingreso no monetario deflactado a pesos de agosto del 2016.
+#Creaci?n del ingreso no monetario deflactado a pesos de agosto del 2016.
 
 #No Monetario
 
@@ -1337,9 +1337,9 @@ nomonetariohog   <- data.frame(nomonetariohog, numren=NA, origen_rem=NA, inst=NA
 
 
 
-#En el caso de la información de gasto no monetario, para 
+#En el caso de la informaci?n de gasto no monetario, para 
 #deflactar se utiliza la decena de levantamiento de la 
-#encuesta, la cual se encuentra en la octava posición del 
+#encuesta, la cual se encuentra en la octava posici?n del 
 #folio de la vivienda. En primer lugar se obtiene una variable que 
 #identifique la decena de levantamiento
 
@@ -1347,7 +1347,7 @@ nomonetario <- merge(nomonetariohog, nomonetarioper, all=TRUE)
 nomonetario$decena=substr(nomonetario$folioviv, 8, 8)
 nomonetario$decena=as.numeric(nomonetario$decena)
 
-#Definición de los deflactores
+#Definici?n de los deflactores
 
 #Rubro 1.1 semanal, Alimentos	
 d11w07=	0.9985457696	
@@ -1356,7 +1356,7 @@ d11w09=	1.0167932672
 d11w10=	1.0199415214	
 d11w11=	1.0251086805	
 
-#Rubro 1.2 semanal, Bebidas alcohólicas y tabaco
+#Rubro 1.2 semanal, Bebidas alcoh?licas y tabaco
 d12w07=	0.9959845820	
 d12w08=	1.0000000000	
 d12w09=	1.0066744829	
@@ -1376,20 +1376,20 @@ d3m09=	0.9978188915
 d3m10=	1.0133832055	
 d3m11=	1.0358543632	
 
-#Rubro 4.2 mensual, Accesorios y artículos de limpieza para el hogar
+#Rubro 4.2 mensual, Accesorios y art?culos de limpieza para el hogar
 d42m07=	0.9936894797	
 d42m08=	1.0000000000	
 d42m09=	1.0041605121	
 d42m10=	1.0056376169	
 d42m11=	1.0087477433	
 
-#Rubro 4.2 trimestral, Accesorios y artículos de limpieza para el hogar
+#Rubro 4.2 trimestral, Accesorios y art?culos de limpieza para el hogar
 d42t05=	0.9932545544	
 d42t06=	0.9960501122	
 d42t07=	0.9992833306	
 d42t08=	1.0032660430	
 
-#Rubro 4.1 semestral, Muebles y aparatos dómesticos
+#Rubro 4.1 semestral, Muebles y aparatos d?mesticos
 d41s02=	1.0081456317	
 d41s03=	1.0057381027	
 d41s04=	1.0038444337	
@@ -1401,7 +1401,7 @@ d51t06=	0.9974422922
 d51t07=	1.0000318717	
 d51t08=	1.0028179937	
 
-#Rubro 6.1.1 semanal, Transporte público urbano	
+#Rubro 6.1.1 semanal, Transporte p?blico urbano	
 d611w07=	0.9998162514	
 d611w08=	1.0000000000	
 d611w09=	1.0010465683	
@@ -1421,7 +1421,7 @@ d6s03=	0.9796636466
 d6s04=	0.9851637735	
 d6s05=	0.9917996695	
 
-#Rubro 7 mensual, Educación y esparcimiento	
+#Rubro 7 mensual, Educaci?n y esparcimiento	
 d7m07=	0.9997765641	
 d7m08=	1.0000000000	
 d7m09=	1.0128930818	
@@ -1537,7 +1537,7 @@ nomonetario$veca_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$veca_nm[(dece
 nomonetario$veca_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$veca_nm[(decena==9 & is.na(decena)!=TRUE)]/d2t08
 nomonetario$veca_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$veca_nm[(decena==0 & is.na(decena)!=TRUE)]/d2t08
 
-#Gasto en Vivienda y servicios de conservación deflactado (mensual)
+#Gasto en Vivienda y servicios de conservaci?n deflactado (mensual)
 
 for(i in 1:16){
   gas_viv=1000+i
@@ -1562,7 +1562,7 @@ nomonetario$viv_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$viv_nm[(decena
 nomonetario$viv_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$viv_nm[(decena==9 & is.na(decena)!=TRUE)]/d3m10
 nomonetario$viv_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$viv_nm[(decena==0 & is.na(decena)!=TRUE)]/d3m10
 
-#Gasto en Artículos de limpieza deflactado (mensual)
+#Gasto en Art?culos de limpieza deflactado (mensual)
 
 for(i in 1:24){
   gas_limp=1000+i
@@ -1580,7 +1580,7 @@ nomonetario$lim_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$lim_nm[(decena
 nomonetario$lim_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$lim_nm[(decena==9 & is.na(decena)!=TRUE)]/d42m10
 nomonetario$lim_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$lim_nm[(decena==0 & is.na(decena)!=TRUE)]/d42m10
 
-#Gasto en Cristalería y blancos deflactado (trimestral)
+#Gasto en Cristaler?a y blancos deflactado (trimestral)
 
 for(i in 1:26){
   gas_cris=1000+i
@@ -1598,7 +1598,7 @@ nomonetario$cris_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$cris_nm[(dece
 nomonetario$cris_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$cris_nm[(decena==9 & is.na(decena)!=TRUE)]/d42t08
 nomonetario$cris_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$cris_nm[(decena==0 & is.na(decena)!=TRUE)]/d42t08
 
-#Gasto en Enseres domésticos y muebles deflactado (semestral)
+#Gasto en Enseres dom?sticos y muebles deflactado (semestral)
 
 for(i in 1:37){
   gas_endom=1000+i
@@ -1634,7 +1634,7 @@ nomonetario$sal_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$sal_nm[(decena
 nomonetario$sal_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$sal_nm[(decena==9 & is.na(decena)!=TRUE)]/d51t08
 nomonetario$sal_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$sal_nm[(decena==0 & is.na(decena)!=TRUE)]/d51t08
 
-#Gasto en Transporte público deflactado (semanal)
+#Gasto en Transporte p?blico deflactado (semanal)
 
 for(i in 1:7){
   gas_transpub=1000+i
@@ -1652,7 +1652,7 @@ nomonetario$tpub_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$tpub_nm[(dece
 nomonetario$tpub_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$tpub_nm[(decena==9 & is.na(decena)!=TRUE)]/d611w10
 nomonetario$tpub_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$tpub_nm[(decena==0 & is.na(decena)!=TRUE)]/d611w11
 
-#Gasto en Transporte foráneo deflactado (semestral)
+#Gasto en Transporte for?neo deflactado (semestral)
 
 for(i in 1:18){
   gas_transfor=1000+i
@@ -1703,7 +1703,7 @@ nomonetario$com_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$com_nm[(decena
 nomonetario$com_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$com_nm[(decena==9 & is.na(decena)!=TRUE)]/d6m10
 nomonetario$com_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$com_nm[(decena==0 & is.na(decena)!=TRUE)]/d6m10
 
-#Gasto en Educación y recreación deflactado (mensual)
+#Gasto en Educaci?n y recreaci?n deflactado (mensual)
 
 for(i in 1:34){
   gas_edurec=1000+i
@@ -1738,7 +1738,7 @@ nomonetario$edre_nm[(decena==8 & is.na(decena)!=TRUE)]=nomonetario$edre_nm[(dece
 nomonetario$edre_nm[(decena==9 & is.na(decena)!=TRUE)]=nomonetario$edre_nm[(decena==9 & is.na(decena)!=TRUE)]/d7m10
 nomonetario$edre_nm[(decena==0 & is.na(decena)!=TRUE)]=nomonetario$edre_nm[(decena==0 & is.na(decena)!=TRUE)]/d7m10
 
-#Gasto en Educación básica deflactado (mensual)
+#Gasto en Educaci?n b?sica deflactado (mensual)
 
 for(i in 2:3){
   gas_edubas=1000+i
@@ -1874,7 +1874,7 @@ indexesp=(nomonetario$esp==1 & is.na(nomonetario$esp)!=TRUE)
 nomonetarioesp=nomonetario[indexesp,]
 
 
-#Construcción de la base de pagos en especie a partir de la base de gasto no monetario
+#Construcci?n de la base de pagos en especie a partir de la base de gasto no monetario
 attach(nomonetarioesp)
 nomonetarioesp2=aggregate(x=list(ali_nm, alta_nm,  veca_nm,  viv_nm,  lim_nm, cris_nm, ens_nm, sal_nm,  tpub_nm, tfor_nm, com_nm, edre_nm, edba_nm, cuip_nm, accp_nm, otr_nm, reda_nm), by=list( folioviv, foliohog),  FUN=sum, na.rm=TRUE)
 detach(nomonetarioesp)
@@ -1886,7 +1886,7 @@ nomonetarioesp2 <- orderBy(~+folioviv+foliohog, data=nomonetarioesp2)
 indexreg=(nomonetario$reg==1 & is.na(nomonetario$reg)!=TRUE)
 nomonetarioreg=nomonetario[indexreg,]
 
-#Construcción de base de regalos a partir de la base no monetaria
+#Construcci?n de base de regalos a partir de la base no monetaria
 attach(nomonetarioreg)
 nomonetarioreg2=aggregate(x=list(ali_nm, alta_nm,  veca_nm,  viv_nm,  lim_nm, cris_nm, ens_nm, sal_nm,  tpub_nm, tfor_nm, com_nm, edre_nm, edba_nm, cuip_nm, accp_nm, otr_nm, reda_nm), by=list( folioviv, foliohog),  FUN=sum, na.rm=TRUE)
 detach(nomonetarioreg)
@@ -1894,7 +1894,7 @@ detach(nomonetarioreg)
 names(nomonetarioreg2 )[1:19] <- c( "folioviv", "foliohog","ali_nmr", "alta_nmr", "veca_nmr", "viv_nmr", "lim_nmr", "cris_nmr", "ens_nmr", "sal_nmr", "tpub_nmr", "tfor_nmr", "com_nmr", "edre_nmr", "edba_nmr", "cuip_nmr", "accp_nmr", "otr_nmr", "reda_nmr")
 nomonetarioreg2 <- orderBy(~+folioviv+foliohog, data=nomonetarioreg2)
 
-#Construcción del ingreso corriente total
+#Construcci?n del ingreso corriente total
 concentrado <- read.dbf("Bases de datos/concentradohogar.dbf",as.is = TRUE)
 names(concentrado) =  tolower(names(concentrado))
 concentrado=concentrado[ c( "folioviv" ,  "foliohog"  , "factor" ,  "tam_loc" , "tot_integ")]
@@ -1926,11 +1926,11 @@ write.dbf(concentrado3, 'Bases/ingresotot16.dbf')
 
 rm(list = ls())
 
-#Construcción del tamaño de hogar con economías de escala
+#Construcci?n del tama?o de hogar con econom?as de escala
 #y escalas de equivalencia
 poblacion1 <- read.dbf("Bases de datos/poblacion.dbf",as.is = TRUE)
 names(poblacion1) =  tolower(names(poblacion1))
-#Población objeto: no se incluye a huéspedes ni trabajadores domésticos
+#Poblaci?n objeto: no se incluye a hu?spedes ni trabajadores dom?sticos
 poblacion2<-as.numeric(poblacion1$parentesco)
 index=((poblacion2>=400 & poblacion2<500)| (poblacion2>=700 & poblacion2 <800))
 index=(index==FALSE)
@@ -2001,20 +2001,20 @@ ingresos2$ictpc= as.numeric(ingresos2$ict)/ingresos2$tamhogesc
 ingresos2$factorp= ingresos2$factor*ingresos2$tot_integ
 
 #Indicador de Bienestar por ingresos
-#LP I: Valor de la Canasta para bienestar mínimo 
+#LP I: Valor de la Canasta para bienestar m?nimo 
 
-#LP II: Valor de la Canasta acc_alimentaria más el valor de la canasta
-#no acc_alimentaria (ver Anexo A del documento metodológico).
+#LP II: Valor de la Canasta acc_alimentaria m?s el valor de la canasta
+#no acc_alimentaria (ver Anexo A del documento metodol?gico).
 
 #En este programa se construyen los indicadores de bienestar por ingresos
-#mediante las 2 líneas definidas por CONEVAL , denominándoles:
+#mediante las 2 l?neas definidas por CONEVAL , denomin?ndoles:
 
-#lp1 : Línea de Bienestar Mínimo
-#lp2 : Línea de Bienestar
+#lp1 : L?nea de Bienestar M?nimo
+#lp2 : L?nea de Bienestar
 
-#Bienestar mínimo
+#Bienestar m?nimo
 
-#Valor de la canasta básica (ver Nota Técnica)
+#Valor de la canasta b?sica (ver Nota T?cnica)
 
 lp1_urb = 1310.94
 lp1_rur = 933.20
@@ -2077,7 +2077,7 @@ base_pobreza= merge(base_pobreza, ali, by.x=c( "folioviv", "foliohog"), all.x = 
 #Identificador de la entidad federativa
 base_pobreza$ent=substr(10000000000 + base_pobreza$folioviv,2,3)
 
-#Índice de Privación Social
+#?ndice de Privaci?n Social
 base_pobreza$i_privacion=rowSums(data.frame(base_pobreza$ic_rezedu, base_pobreza$ic_asalud, base_pobreza$ic_segsoc, base_pobreza$ic_cv, base_pobreza$ic_sbv, base_pobreza$ic_ali), na.rm = TRUE)
 base_pobreza$i_privacion[(is.na(base_pobreza$ic_rezedu)==TRUE | is.na(base_pobreza$ic_asalud)==TRUE | is.na(base_pobreza$ic_segsoc)==TRUE | is.na(base_pobreza$ic_cv)==TRUE | is.na(base_pobreza$ic_sbv)==TRUE | is.na(base_pobreza$ic_ali)==TRUE)]=NA
 table(base_pobreza$i_privacion)
@@ -2096,7 +2096,7 @@ base_pobreza$pobreza_m[(base_pobreza$pobreza==1 & base_pobreza$pobreza_e==0)]=1
 base_pobreza$pobreza_m[ base_pobreza$pobreza==0 | (base_pobreza$pobreza==1 & base_pobreza$pobreza_e==1)]=0
 table(base_pobreza$pobreza_m)
 
-#Población vulnerable
+#Poblaci?n vulnerable
 
 #Vulnerables por carencias 
 base_pobreza$vul_car[((base_pobreza$i_privacion>=1 & is.na(base_pobreza$i_privacion)!=TRUE) & base_pobreza$plb==0)]=1
@@ -2110,13 +2110,13 @@ base_pobreza$vul_ing[base_pobreza$plb==0 | (base_pobreza$plb==1 & base_pobreza$i
 base_pobreza$vul_ing[is.na(base_pobreza$pobreza)==TRUE]=NA
 table(base_pobreza$vul_ing)
 
-#Población no pobre y no vulnerable
+#Poblaci?n no pobre y no vulnerable
 base_pobreza$no_pobv[(base_pobreza$i_privacion==0 & base_pobreza$plb==0)]=1
 base_pobreza$no_pobv[base_pobreza$plb==1 | (base_pobreza$plb==0 & base_pobreza$i_privacion>=1) ]=0
 base_pobreza$no_pobv[is.na(base_pobreza$pobreza)==TRUE]=NA
 table(base_pobreza$no_pobv)
 
-#Población con carencias sociales#
+#Poblaci?n con carencias sociales#
 base_pobreza$carencias[base_pobreza$i_privacion>=1]=1
 base_pobreza$carencias[base_pobreza$i_privacion==0]=0
 base_pobreza$carencias[is.na(base_pobreza$pobreza)==TRUE]=NA
@@ -2145,41 +2145,41 @@ lp1_rur = 933.20
 lp2_urb = 2660.40
 lp2_rur = 1715.57
 
-#Distancia normalizada del ingreso respecto a la línea de bienestar
+#Distancia normalizada del ingreso respecto a la l?nea de bienestar
 base_pobreza$prof_b1[base_pobreza$rururb==1 & base_pobreza$plb==1 & is.na(base_pobreza$rururb)!=TRUE & is.na(base_pobreza$plb)!=TRUE]=(lp2_rur-base_pobreza$ictpc[base_pobreza$rururb==1 & base_pobreza$plb==1])/lp2_rur
 base_pobreza$prof_b1[base_pobreza$rururb==0 & base_pobreza$plb==1 & is.na(base_pobreza$rururb)!=TRUE & is.na(base_pobreza$plb)!=TRUE]=(lp2_urb-base_pobreza$ictpc[base_pobreza$rururb==0 & base_pobreza$plb==1])/lp2_urb
 base_pobreza$prof_b1[is.na(base_pobreza$ictpc)!=TRUE & is.na(base_pobreza$prof_b1)==TRUE]=0
 mean(base_pobreza$prof_b1[is.na(base_pobreza$prof_b1)!=TRUE])
 
-#Distancia normalizada del ingreso respecto a la línea de bienestar mínimo
+#Distancia normalizada del ingreso respecto a la l?nea de bienestar m?nimo
 base_pobreza$prof_bm1[base_pobreza$rururb==1 & base_pobreza$plb_m==1 & is.na(base_pobreza$rururb)!=TRUE & is.na(base_pobreza$plb_m)!=TRUE]=(lp1_rur-base_pobreza$ictpc[base_pobreza$rururb==1 & base_pobreza$plb_m==1])/lp1_rur
 base_pobreza$prof_bm1[base_pobreza$rururb==0 & base_pobreza$plb_m==1 & is.na(base_pobreza$rururb)!=TRUE & is.na(base_pobreza$plb_m)!=TRUE]=(lp1_urb-base_pobreza$ictpc[base_pobreza$rururb==0 & base_pobreza$plb_m==1])/lp1_urb
 base_pobreza$prof_bm1[is.na(base_pobreza$ictpc)!=TRUE & is.na(base_pobreza$prof_bm1)==TRUE]=0
 mean(base_pobreza$prof_bm1[is.na(base_pobreza$prof_bm1)!=TRUE])
 
-#Profundidad de la privación social
+#Profundidad de la privaci?n social
 base_pobreza$profun=base_pobreza$i_privacion/6
 mean(base_pobreza$profun[is.na(base_pobreza$profun)!=TRUE])
 
-#Intensidad de la privación social
+#Intensidad de la privaci?n social
 
-#Población pobre
-#Intensidad de la privación social: pobres
+#Poblaci?n pobre
+#Intensidad de la privaci?n social: pobres
 base_pobreza$int_pob=base_pobreza$profun*base_pobreza$pobreza
 mean(base_pobreza$int_pob[is.na(base_pobreza$int_pob)!=TRUE])
 
-#Población pobre extrema
-#Intensidad de la privación social: pobres extremos
+#Poblaci?n pobre extrema
+#Intensidad de la privaci?n social: pobres extremos
 base_pobreza$int_pobe=base_pobreza$profun*base_pobreza$pobreza_e
 mean(base_pobreza$int_pobe[is.na(base_pobreza$int_pobe)!=TRUE])
 
-#Población vulnerable por carencias
-#Intensidad de la privación social: población vulnerable por carencias
+#Poblaci?n vulnerable por carencias
+#Intensidad de la privaci?n social: poblaci?n vulnerable por carencias
 base_pobreza$int_vulcar=base_pobreza$profun*base_pobreza$vul_car
 mean(base_pobreza$int_vulcar[is.na(base_pobreza$int_vulcar)!=TRUE])
 
-#Población carenciada
-#Intensidad de la privación social: población carenciada
+#Poblaci?n carenciada
+#Intensidad de la privaci?n social: poblaci?n carenciada
 base_pobreza$int_caren=base_pobreza$profun*base_pobreza$carencias
 mean(base_pobreza$int_caren[is.na(base_pobreza$int_caren)!=TRUE])
 
@@ -2203,7 +2203,7 @@ base_pobreza=base_pobreza[, c("folioviv" ,	"foliohog" ,	"numren" ,	"edad" ,	"ana
 write.csv(base_pobreza, 'Bases/pobreza_16.csv', row.names = FALSE)
 write.dbf(base_pobreza, 'Bases/pobreza_16.dbf')
 
-#Indicadores de la medición de pobreza, Estados Unidos Mexicanos
+#Indicadores de la medici?n de pobreza, Estados Unidos Mexicanos
 
 
 #Pobreza
@@ -2224,10 +2224,10 @@ vul_ing=by(base_pobreza,base_pobreza[ ,"ent"],
 #No pobre multidimensional no vulnerable
 no_pobv=by(base_pobreza,base_pobreza[ ,"ent"], 
            function(base_pobreza)sum(base_pobreza$factor[base_pobreza$no_pobv==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
-#Poblaciión con al menos una carencia social
+#Poblacii?n con al menos una carencia social
 carencias=by(base_pobreza,base_pobreza[ ,"ent"], 
              function(base_pobreza)sum(base_pobreza$factor[base_pobreza$carencias==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
-#población con al menos tres carencias sociales
+#poblaci?n con al menos tres carencias sociales
 carencias3=by(base_pobreza,base_pobreza[ ,"ent"], 
               function(base_pobreza)sum(base_pobreza$factor[base_pobreza$carencias3==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
 #Rezago educativo
@@ -2242,16 +2242,16 @@ ic_segsoc=by(base_pobreza,base_pobreza[ ,"ent"],
 #Carencias por calidad y espacios de la vivienda
 ic_cev=by(base_pobreza,base_pobreza[ ,"ent"], 
           function(base_pobreza)sum(base_pobreza$factor[base_pobreza$ic_cv==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
-#Carencias por acceso a los servicios básicos de la vivienda
+#Carencias por acceso a los servicios b?sicos de la vivienda
 ic_sbv=by(base_pobreza,base_pobreza[ ,"ent"], 
           function(base_pobreza)sum(base_pobreza$factor[base_pobreza$ic_sbv==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
-#Carencias por acceso a la alimentación
+#Carencias por acceso a la alimentaci?n
 ic_ali=by(base_pobreza,base_pobreza[ ,"ent"], 
           function(base_pobreza)sum(base_pobreza$factor[base_pobreza$ic_ali==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
-#Poblacion con un ingreso inferior a la línea de bienestar mínimo
+#Poblacion con un ingreso inferior a la l?nea de bienestar m?nimo
 plb_m=by(base_pobreza,base_pobreza[ ,"ent"], 
          function(base_pobreza)sum(base_pobreza$factor[base_pobreza$plb_m==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
-#Poblacion con un ingreso inferior a la línea de bienestar
+#Poblacion con un ingreso inferior a la l?nea de bienestar
 plb=by(base_pobreza,base_pobreza[ ,"ent"], 
        function(base_pobreza)sum(base_pobreza$factor[base_pobreza$plb==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE))
 
@@ -2264,9 +2264,9 @@ names(tabstat_sum)[1:16]=cbind("pobreza","pobreza_m","pobreza_e","vul_car","vul_
 
 
 row.names(tabstat_sum)[1:33]=cbind("Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila","Colima"
-                                   ,"Chiapas","Chihuahua","Ciudad de México","Durango","Guanajuato","Guerrero","Hidalgo","Jalisco",
-                                   "México","Michoacán","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla","Querétaro","Quintana Roo",
-                                   "San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatán","Zacatecas","NACIONAL")
+                                   ,"Chiapas","Chihuahua","Ciudad de M?xico","Durango","Guanajuato","Guerrero","Hidalgo","Jalisco",
+                                   "M?xico","Michoac?n","Morelos","Nayarit","Nuevo Le?n","Oaxaca","Puebla","Quer?taro","Quintana Roo",
+                                   "San Luis Potos?","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucat?n","Zacatecas","NACIONAL")
 #NACIONAL
 
 #Pobreza
@@ -2281,9 +2281,9 @@ tabstat_sum[33,4]=sum(base_pobreza$factor[base_pobreza$vul_car==1 & is.na(base_p
 tabstat_sum[33,5]=sum(base_pobreza$factor[base_pobreza$vul_ing==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
 #No pobre multidimensional no vulnerable
 tabstat_sum[33,6]=sum(base_pobreza$factor[base_pobreza$no_pobv==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
-#Poblaciión con al menos una carencia social
+#Poblacii?n con al menos una carencia social
 tabstat_sum[33,7]=sum(base_pobreza$factor[base_pobreza$carencias==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
-#población con al menos tres carencias sociales
+#poblaci?n con al menos tres carencias sociales
 tabstat_sum[33,8]=sum(base_pobreza$factor[base_pobreza$carencias3==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
 #Rezago educativo
 tabstat_sum[33,9]=sum(base_pobreza$factor[base_pobreza$ic_rezedu==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
@@ -2293,13 +2293,13 @@ tabstat_sum[33,10]=sum(base_pobreza$factor[base_pobreza$ic_asalud==1 & is.na(bas
 tabstat_sum[33,11]=sum(base_pobreza$factor[base_pobreza$ic_segsoc==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
 #Carencias por calidad y espacios de la vivienda
 tabstat_sum[33,12]=sum(base_pobreza$factor[base_pobreza$ic_cv==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
-#Carencias por acceso a los servicios básicos de la vivienda
+#Carencias por acceso a los servicios b?sicos de la vivienda
 tabstat_sum[33,13]=sum(base_pobreza$factor[base_pobreza$ic_sbv==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
-#Carencias por acceso a la alimentación
+#Carencias por acceso a la alimentaci?n
 tabstat_sum[33,14]=sum(base_pobreza$factor[base_pobreza$ic_ali==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
-#Poblacion con un ingreso inferior a la línea de bienestar mínimo
+#Poblacion con un ingreso inferior a la l?nea de bienestar m?nimo
 tabstat_sum[33,15]=sum(base_pobreza$factor[base_pobreza$plb_m==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
-#Poblacion con un ingreso inferior a la línea de bienestar
+#Poblacion con un ingreso inferior a la l?nea de bienestar
 tabstat_sum[33,16]=sum(base_pobreza$factor[base_pobreza$plb==1 & is.na(base_pobreza$pobreza)==FALSE], na.rm=TRUE)
 
 #ESTATAL
@@ -2326,37 +2326,37 @@ for(i in 1:32){
 
 
 
-#Porcentaje de la población total en pobreza
+#Porcentaje de la poblaci?n total en pobreza
 p.pobreza<-by(base_pobreza,base_pobreza[ ,"ent"],function(base_pobreza)weighted.mean(base_pobreza$pobreza[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total en pobreza moderada
+#Porcentaje de la poblaci?n total en pobreza moderada
 p.pobreza_m<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$pobreza_m[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total en pobreza extrema
+#Porcentaje de la poblaci?n total en pobreza extrema
 p.pobreza_e<-by(base_pobreza,base_pobreza[ ,"ent"],function(base_pobreza)weighted.mean(base_pobreza$pobreza_e[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total vulnerable por carencias sociales
+#Porcentaje de la poblaci?n total vulnerable por carencias sociales
 p.vul_car<-by(base_pobreza,base_pobreza[ ,"ent"],function(base_pobreza)weighted.mean(base_pobreza$vul_car[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total vulnerable por ingresos
+#Porcentaje de la poblaci?n total vulnerable por ingresos
 p.vul_ing<-by(base_pobreza,base_pobreza[ ,"ent"], function(base_pobreza)weighted.mean(base_pobreza$vul_ing[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total no pobre y no vulnerable
+#Porcentaje de la poblaci?n total no pobre y no vulnerable
 p.no_pobv<-by(base_pobreza,base_pobreza[ ,"ent"],function(base_pobreza)weighted.mean(base_pobreza$no_pobv[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con rezago educativo
+#Porcentaje de la poblaci?n total con rezago educativo
 p.carencias<-by(base_pobreza,base_pobreza[ ,"ent"],function(base_pobreza)weighted.mean(base_pobreza$carencias[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por acceso a la salud
+#Porcentaje de la poblaci?n total con carencia por acceso a la salud
 p.carencias3<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$carencias3[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con rezago educativo
+#Porcentaje de la poblaci?n total con rezago educativo
 p.ic_rezedu<-by(base_pobreza,base_pobreza[ ,"ent"],function(base_pobreza)weighted.mean(base_pobreza$ic_rezedu[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por acceso a la salud
+#Porcentaje de la poblaci?n total con carencia por acceso a la salud
 p.ic_asalud<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$ic_asalud[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por acceso a seguridad social
+#Porcentaje de la poblaci?n total con carencia por acceso a seguridad social
 p.ic_segsoc<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$ic_segsoc[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por calidad y espacios de la vivienda
+#Porcentaje de la poblaci?n total con carencia por calidad y espacios de la vivienda
 p.ic_cev<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$ic_cv[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por servicios básicos de la vivienda
+#Porcentaje de la poblaci?n total con carencia por servicios b?sicos de la vivienda
 p.ic_sbv<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$ic_sbv[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por acceso a la acc_alimentación
+#Porcentaje de la poblaci?n total con carencia por acceso a la acc_alimentaci?n
 p.ic_ali<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$ic_ali[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por servicios básicos de la vivienda
+#Porcentaje de la poblaci?n total con carencia por servicios b?sicos de la vivienda
 p.plb_m<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$plb_m[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
-#Porcentaje de la población total con carencia por acceso a la acc_alimentación
+#Porcentaje de la poblaci?n total con carencia por acceso a la acc_alimentaci?n
 p.plb<-by(base_pobreza,base_pobreza[ ,"ent"],    function(base_pobreza)weighted.mean(base_pobreza$plb[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100)
 
 
@@ -2369,42 +2369,42 @@ names(tabstat_mean)[1:16]=cbind("pobreza","pobreza_m","pobreza_e","vul_car","vul
 
 
 row.names(tabstat_mean)[1:33]=cbind("Aguascalientes","Baja California","Baja California Sur","Campeche","Coahuila","Colima"
-                                    ,"Chiapas","Chihuahua","Ciudad de México","Durango","Guanajuato","Guerrero","Hidalgo","Jalisco",
-                                    "México","Michoacán","Morelos","Nayarit","Nuevo León","Oaxaca","Puebla","Querétaro","Quintana Roo",
-                                    "San Luis Potosí","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatán","Zacatecas","NACIONAL")
+                                    ,"Chiapas","Chihuahua","Ciudad de M?xico","Durango","Guanajuato","Guerrero","Hidalgo","Jalisco",
+                                    "M?xico","Michoac?n","Morelos","Nayarit","Nuevo Le?n","Oaxaca","Puebla","Quer?taro","Quintana Roo",
+                                    "San Luis Potos?","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucat?n","Zacatecas","NACIONAL")
 
 #NACIONAL
-#Porcentaje de la población total en pobreza
+#Porcentaje de la poblaci?n total en pobreza
 tabstat_mean[33,1]=weighted.mean(base_pobreza$pobreza[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total en pobreza moderada
+#Porcentaje de la poblaci?n total en pobreza moderada
 tabstat_mean[33,2]=weighted.mean(base_pobreza$pobreza_m[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total en pobreza extrema
+#Porcentaje de la poblaci?n total en pobreza extrema
 tabstat_mean[33,3]=weighted.mean(base_pobreza$pobreza_e[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total vulnerable por carencias sociales
+#Porcentaje de la poblaci?n total vulnerable por carencias sociales
 tabstat_mean[33,4]=weighted.mean(base_pobreza$vul_car[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total vulnerable por ingresos
+#Porcentaje de la poblaci?n total vulnerable por ingresos
 tabstat_mean[33,5]=weighted.mean(base_pobreza$vul_ing[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total no pobre y no vulnerable
+#Porcentaje de la poblaci?n total no pobre y no vulnerable
 tabstat_mean[33,6]=weighted.mean(base_pobreza$no_pobv[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con rezago educativo
+#Porcentaje de la poblaci?n total con rezago educativo
 tabstat_mean[33,7]=weighted.mean(base_pobreza$carencias[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por acceso a la salud
+#Porcentaje de la poblaci?n total con carencia por acceso a la salud
 tabstat_mean[33,8]=weighted.mean(base_pobreza$carencias3[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con rezago educativo
+#Porcentaje de la poblaci?n total con rezago educativo
 tabstat_mean[33,9]=weighted.mean(base_pobreza$ic_rezedu[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por acceso a la salud
+#Porcentaje de la poblaci?n total con carencia por acceso a la salud
 tabstat_mean[33,10]=weighted.mean(base_pobreza$ic_asalud[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por acceso a seguridad social
+#Porcentaje de la poblaci?n total con carencia por acceso a seguridad social
 tabstat_mean[33,11]=weighted.mean(base_pobreza$ic_segsoc[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por calidad y espacios de la vivienda
+#Porcentaje de la poblaci?n total con carencia por calidad y espacios de la vivienda
 tabstat_mean[33,12]=weighted.mean(base_pobreza$ic_cv[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por servicios básicos de la vivienda
+#Porcentaje de la poblaci?n total con carencia por servicios b?sicos de la vivienda
 tabstat_mean[33,13]=weighted.mean(base_pobreza$ic_sbv[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por acceso a la acc_alimentación
+#Porcentaje de la poblaci?n total con carencia por acceso a la acc_alimentaci?n
 tabstat_mean[33,14]=weighted.mean(base_pobreza$ic_ali[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por servicios básicos de la vivienda
+#Porcentaje de la poblaci?n total con carencia por servicios b?sicos de la vivienda
 tabstat_mean[33,15]=weighted.mean(base_pobreza$plb_m[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
-#Porcentaje de la población total con carencia por acceso a la acc_alimentación
+#Porcentaje de la poblaci?n total con carencia por acceso a la acc_alimentaci?n
 tabstat_mean[33,16]=weighted.mean(base_pobreza$plb[is.na(base_pobreza$pobreza)==FALSE],base_pobreza$factor[is.na(base_pobreza$pobreza)==FALSE],na.rm=TRUE)*100
 
 #ESTATAL
