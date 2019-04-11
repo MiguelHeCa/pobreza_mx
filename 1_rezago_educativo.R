@@ -44,7 +44,6 @@ poblacion <- poblacion %>%
 
 poblacion <- poblacion %>% 
   mutate(niv_ed = case_when(
-    
     # Con primaria incompleta o menos
     (nivelaprob < 2) | (nivelaprob == 2 & gradoaprob < 6)     ~ 0,
     
@@ -58,12 +57,41 @@ poblacion <- poblacion %>%
     # Secundaria completa o mayor nivel educativo
     ((nivelaprob == 3 & gradoaprob == 3) |
        (nivelaprob == 4) |
-       (nivelaprob == 5 & antec_esc == 1 & gradoaprob >= 3) |  
+       (nivelaprob == 5 & antec_esc == 1 & gradoaprob >= 3) |
        (nivelaprob == 6 & antec_esc == 1 & gradoaprob >= 3) |
        (nivelaprob == 5 & antec_esc >= 2) |
        (nivelaprob == 6 & antec_esc >= 2) |
-       (nivelaprob >= 7))                                     ~ 2,
+       (nivelaprob >= 7)
+    )                                                         ~ 2,
     
     # Todo lo demás
     TRUE                                                      ~ NA_real_
   ))
+
+# Indicador de carencia por rezago educativo ------------------------------
+
+# Se considera en situación de carencia por rezago educativo 
+# a la población que cumpla con alguno de los siguientes criterios:
+
+# 1. Se encuentra entre los 3 y los 15 años y no ha terminado la educación 
+# obligatoria (secundaria terminada) o no asiste a la escuela.
+# 2. Tiene una edad de 16 años o más, su año de nacimiento aproximado es 1981 
+# o anterior, y no dispone de primaria completa.
+# 3. Tiene una edad de 16 años o más, su año de nacimiento aproximado es 1982 
+# en adelante, y no dispone de primaria secundaria completa.
+
+poblacion <- poblacion %>%
+  mutate(
+    ic_rezedu = case_when(
+      (edad >= 3 & edad <= 15) & 
+        inas_esc == 1 & 
+        (niv_ed == 0 | niv_ed == 1)                                 ~ 1,
+      (edad >= 16) & (anac_e >= 1982) & (niv_ed == 0 | niv_ed == 1) ~ 1,
+      (edad >= 16) & (anac_e <= 1981) & (niv_ed == 0)               ~ 1,
+      (edad >= 0 & edad <= 2)                                       ~ 0,
+      (edad >= 3 & edad <= 15) & inas_esc == 0                      ~ 0,
+      (edad >= 3 & edad <= 15) & inas_esc == 1 & (niv_ed == 2)      ~ 0,
+      (edad >= 16) & (anac_e >= 1982) & (niv_ed == 2)               ~ 0,
+      (edad >= 16) & (anac_e <= 1981) & (niv_ed == 1 | niv_ed == 2) ~ 0
+    )
+  )
