@@ -136,16 +136,14 @@ trabajos <- trabajos %>%
   # Ocupación principal o secundaria
   mutate(ocupa = if_else(condition = id_trabajo == 1, true = 1, false = 0))
 
+trabajos <- trabajos %>% 
+  # Distinción de prestaciones en trabajo principal y secundario
+  select(folioviv, foliohog, numren, id_trabajo, tipo_trab, ocupa)
 
-
-
-
-
-
-
-
-
-
+trabajos2 <- trabajos %>% 
+  gather(variable, valor, -(folioviv:id_trabajo)) %>% 
+  unite(temporal, variable, id_trabajo) %>% 
+  spread(temporal, valor)
 
 
 
@@ -165,5 +163,6 @@ trabajos <- trabajos %>%
 
 
 # II. Pobreza =============================================================
+
 
 
