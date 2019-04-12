@@ -1,4 +1,4 @@
-# Repositorio de la medición de la probreza de CONEVAL
+# Repositorio de la medición de la pobreza de CONEVAL
 
 Este repositorio trata de documentar paso a paso cómo se calcula la [medición de la pobreza](https://www.coneval.org.mx/Medicion/MP/Paginas/Metodologia.aspx) según el [CONEVAL](https://www.coneval.org.mx/paginas/principal.aspx) con base en la [ENIGH](https://www.inegi.org.mx/programas/enigh/nc/2016/) del [INEGI](https://www.inegi.org.mx/default.html).
 
