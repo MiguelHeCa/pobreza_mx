@@ -131,7 +131,10 @@ trabajos <- trabajos %>%
     TRUE ~ NA_real_
   ))
 
-
+trabajos <- trabajos %>% 
+  
+  # Ocupación principal o secundaria
+  mutate(ocupa = if_else(condition = id_trabajo == 1, true = 1, false = 0))
 
 
 
