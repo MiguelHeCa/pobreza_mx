@@ -116,15 +116,15 @@ trabajos <- trabajos %>%
   mutate(tipo_trab = case_when(
     
     # Subordinados
-    subor == 1                                        ~ 1,
+    subor == 1                                          ~ 1,
     
     # Independientes que reciben un pago
-    subor == 2 & indep == 1 & tiene_suel == 1         ~ 2,
-    subor == 2 & indep == 2 & pago == 1               ~ 2,
+    subor == 2 & indep == 1 & tiene_suel == 1 |
+      subor == 2 & indep == 2 & pago == 1               ~ 2,
     
     # Independientes que no reciben un pago
-    subor == 2 & indep == 1 & tiene_suel == 2         ~ 3,
-    subor == 2 & indep == 2 & (pago == 2 | pago == 3) ~ 3,
+    subor == 2 & indep == 1 & tiene_suel == 2 | 
+      subor == 2 & indep == 2 & (pago == 2 | pago == 3) ~ 3,
     
     # Todo lo demás
     TRUE ~ NA_real_
@@ -167,12 +167,7 @@ poblacion <- poblacion_brut %>%
   rename_all(tolower) %>% 
   
   # Transformar variables de interés a numéricas
-  mutate_at(c("nivelaprob",
-              "gradoaprob",
-              "antec_esc",
-              "hablaind",
-              "parentesco"),
-            as.numeric) %>% 
+  mutate_at(parentesco, as.numeric) %>% 
   
   # Quitar de la población a huéspedes y trabajadores domésticos
   filter(!((parentesco >= 400 & parentesco < 500) | 
