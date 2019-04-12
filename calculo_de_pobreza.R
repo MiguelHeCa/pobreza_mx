@@ -156,6 +156,10 @@ trabajos2 <- trabajos2 %>%
 
 # Acomodando variables
 
+trabajos2 <- trabajos2 %>% 
+  select(folioviv:numren, tipo_trab1, ocupa1, tipo_trab2, ocupa2, trab) %>% 
+  arrange(folioviv, foliohog, numren)
+
 # I.3. Acceso a la seguridad social ---------------------------------------
 
 
