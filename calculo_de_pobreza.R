@@ -200,6 +200,7 @@ poblacion <- poblacion %>%
 # Tipo de trabajo
 poblacion <- poblacion %>% 
   mutate(
+    
     # Ocupación principal
     tipo_trab1 = case_when(
       pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
@@ -212,6 +213,44 @@ poblacion <- poblacion %>%
       TRUE ~ tipo_trab2
     )
   )
+
+# Prestaciones básicas
+
+# Prestaciones laborales (servicios médicos)
+poblacion <- poblacion %>% 
+  mutate(
+    
+    # Ocupación principal
+    smlab1 = case_when(
+      ocupa1 == 1 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !is.na(inscr_1) ~ 1,
+      ocupa1 == 1       ~ 0,
+      TRUE              ~ NA_real_
+    ),
+    
+    # Ocupación secundaria
+    smlab2 = case_when(
+      ocupa2 == 1 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !is.na(inscr_1) ~ 1,
+      ocupa2 == 1       ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    # Contratación voluntaria: servicios médicos
+    smcv = case_when(
+      edad >= 12 & edad <= 97 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !is.na(inscr_6)         ~ 1,
+      edad >= 12 & edad <= 97 ~ 0,
+      TRUE                      ~ NA_real_
+    )
+  )
+
+table(poblacion$smlab1, exclude = NULL)
+table(poblacion$smlab2, exclude = NULL)
+table(poblacion$smcv, exclude = NULL)
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
