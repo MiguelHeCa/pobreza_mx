@@ -76,14 +76,14 @@ poblacion <- poblacion_brut %>%
     # 3. Tiene una edad de 16 años o más, su año de nacimiento aproximado es
     # 1982 en adelante, y no dispone de primaria secundaria completa.
     ic_rezedu = case_when(
-      (edad >= 3 & edad <= 15) &  inas_esc == 1 &  niv_ed <= 1 ~ 1,
-      edad >= 16 & anac_e >= 1982 & niv_ed <= 1                ~ 1,
-      edad >= 16 & anac_e <= 1981 & niv_ed == 0                ~ 1,
-      edad >= 0  & edad <= 2                                   ~ 0,
-      (edad >= 3 & edad <= 15) & inas_esc == 0                 ~ 0,
-      (edad >= 3 & edad <= 15) & inas_esc == 1 & niv_ed == 2   ~ 0,
-      edad >= 16 & anac_e >= 1982 & niv_ed == 2                ~ 0,
-      edad >= 16 & anac_e <= 1981 & niv_ed > 0                 ~ 0
+      edad >= 3 & edad <= 15 &  inas_esc == 1 &  niv_ed <= 1 |
+        edad >= 16 & anac_e >= 1982 & niv_ed <= 1 |
+        edad >= 16 & anac_e <= 1981 & niv_ed == 0              ~ 1,
+      edad >= 0  & edad <= 2 |
+        edad >= 3 & edad <= 15 & inas_esc == 0 |
+        edad >= 3 & edad <= 15 & inas_esc == 1 & niv_ed == 2 |
+        edad >= 16 & anac_e >= 1982 & niv_ed == 2 |
+        edad >= 16 & anac_e <= 1981 & niv_ed > 0               ~ 0
     ),
     
     # Población indígena
@@ -159,7 +159,24 @@ gc()
 
 # I.2.2 Acceso a servicios de salud ---------------------------------------
 
+poblacion_brut <- readRDS("data/poblacion.rds")
 
+poblacion <- poblacion_brut %>% 
+  
+  # Nombres de variables en minúsculas
+  rename_all(tolower) %>% 
+  
+  # Transformar variables de interés a numéricas
+  mutate_at(c("nivelaprob",
+              "gradoaprob",
+              "antec_esc",
+              "hablaind",
+              "parentesco"),
+            as.numeric) %>% 
+  
+  # Quitar de la población a huéspedes y trabajadores domésticos
+  filter(!((parentesco >= 400 & parentesco < 500) | 
+             parentesco >= 700 & parentesco < 800))
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
