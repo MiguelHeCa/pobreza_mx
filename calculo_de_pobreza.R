@@ -4,7 +4,8 @@
 
 library(tidyverse)
 
-# I. Indicadores de Privación Social --------------------------------------
+# I. Indicadores de Privación Social ======================================
+
 
 # I.1. Rezago educativo ---------------------------------------------------
 
@@ -104,7 +105,45 @@ saveRDS(poblacion, "data/ic_rezedu16.rds")
 rm(list = ls())
 gc()
 
+
+
 # I.2. Acceso a servicios de salud ----------------------------------------
+
+trabajos <- readRDS("data/trabajos.rds")
+
+# Tipo de trabajor: identifica la población subordinada e independiente
+
+trabajos <- trabajos %>% 
+  mutate(tipo_trab = case_when(
+    
+    # Subordinados
+    subor == 1 ~ 1,
+    
+    # Independientes que reciben un pago
+    subor == 2 & indep == 1 & tiene_suel == 1 ~ 2,
+    subor == 2 & indep == 2 & pago == 1 ~ 2,
+    
+    # Independientes que no reciben un pago
+    subor == 2 & indep == 1 & tiene_suel == 2 ~ 3,
+    subor == 2 & indep == 2 & (pago == 2 | pago == 3) ~ 3,
+    
+    # Todo lo demás
+    TRUE ~ NA_real_
+  ))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
@@ -122,6 +161,6 @@ gc()
 # I.7. Bienestar (ingresos) -----------------------------------------------
 
 
-# II. Pobreza -------------------------------------------------------------
+# II. Pobreza =============================================================
 
 
