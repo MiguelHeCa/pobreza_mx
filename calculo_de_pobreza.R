@@ -107,24 +107,23 @@ gc()
 
 
 
-# I.2. Acceso a servicios de salud ----------------------------------------
+# I.2.1. Población ocupada ------------------------------------------------
 
 trabajos <- readRDS("data/trabajos.rds")
 
 # Tipo de trabajor: identifica la población subordinada e independiente
-
 trabajos <- trabajos %>% 
   mutate(tipo_trab = case_when(
     
     # Subordinados
-    subor == 1 ~ 1,
+    subor == 1                                        ~ 1,
     
     # Independientes que reciben un pago
-    subor == 2 & indep == 1 & tiene_suel == 1 ~ 2,
-    subor == 2 & indep == 2 & pago == 1 ~ 2,
+    subor == 2 & indep == 1 & tiene_suel == 1         ~ 2,
+    subor == 2 & indep == 2 & pago == 1               ~ 2,
     
     # Independientes que no reciben un pago
-    subor == 2 & indep == 1 & tiene_suel == 2 ~ 3,
+    subor == 2 & indep == 1 & tiene_suel == 2         ~ 3,
     subor == 2 & indep == 2 & (pago == 2 | pago == 3) ~ 3,
     
     # Todo lo demás
@@ -144,8 +143,7 @@ trabajos <- trabajos %>%
   mutate(
     ocupa2 = if_else(condition = is.na(ocupa2), true = 0, false = 1),
     
-    # Identificar de población trabajadora (toda la que reporta al menos un empleo 
-    # en `trabajos.dbf`)
+    # Identificar de población trabajadora (que reporta al menos un empleo)
     trab = 1
     ) %>% 
   
@@ -153,11 +151,14 @@ trabajos <- trabajos %>%
   select(folioviv:numren, tipo_trab1, ocupa1, tipo_trab2, ocupa2, trab) %>% 
   arrange(folioviv, foliohog, numren)
 
-# Exportando
+# Exportar
 saveRDS(trabajos, "data/ocupados16.rds")
 
 rm(list = ls())
 gc()
+
+# I.2.2 Acceso a servicios de salud ---------------------------------------
+
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
