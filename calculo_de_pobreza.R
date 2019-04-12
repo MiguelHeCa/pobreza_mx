@@ -203,6 +203,24 @@ poblacion <- poblacion %>%
     TRUE                                                           ~ NA_real_
   ))
 
+# Tipo de trabajo
+
+# Ocupación principal
+
+poblacion <- poblacion %>% 
+  mutate(
+    # Ocupación principal
+    tipo_trab1 = case_when(
+      pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
+      TRUE ~ tipo_trab1
+    ),
+    
+    # Ocupación secundaria
+    tipo_trab2 = case_when(
+      pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
+      TRUE ~ tipo_trab2
+    )
+  )
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
