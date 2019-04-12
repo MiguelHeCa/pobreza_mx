@@ -15,7 +15,6 @@
 # Viviendas:    viviendas.rds
 # No monetario: gastospersona.rds y gastoshogar.rds
 
-
 # Paquetes ----------------------------------------------------------------
 
 library(tidyverse)
@@ -118,9 +117,7 @@ poblacion <- poblacion_brut %>%
 saveRDS(poblacion, "data/ic_rezedu16.rds")
 
 rm(list = ls())
-
 gc()
-
 
 # I.2.1. Población ocupada ------------------------------------------------
 
@@ -131,15 +128,13 @@ ocupados <- trabajos %>%
   mutate(tipo_trab = case_when(
     
     # Subordinados
-    subor == 1                                          ~ 1,
+    subor == 1                                                             ~ 1,
     
     # Independientes que reciben un pago
-    subor == 2 & indep == 1 & tiene_suel == 1 |
-      subor == 2 & indep == 2 & pago == 1               ~ 2,
+    subor == 2 & (indep == 1 & tiene_suel == 1) | (indep == 2 & pago == 1) ~ 2,
     
     # Independientes que no reciben un pago
-    subor == 2 & indep == 1 & tiene_suel == 2 | 
-      subor == 2 & indep == 2 & (pago == 2 | pago == 3) ~ 3,
+    subor == 2 & (indep == 1 & tiene_suel == 2) | (indep == 2 & pago > 1)  ~ 3,
     
     # Todo lo demás
     TRUE ~ NA_real_
@@ -189,7 +184,6 @@ poblacion <- poblacion_brut %>%
 saveRDS(ocupados, "data/ocupados16.rds")
 
 rm(list = setdiff(ls(), "poblacion"))
-
 gc()
 
 # I.2.2 Acceso a servicios de salud ---------------------------------------
@@ -204,9 +198,6 @@ poblacion <- poblacion %>%
   ))
 
 # Tipo de trabajo
-
-# Ocupación principal
-
 poblacion <- poblacion %>% 
   mutate(
     # Ocupación principal
