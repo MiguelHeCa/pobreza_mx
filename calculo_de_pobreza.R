@@ -174,7 +174,7 @@ poblacion <- poblacion_brut %>%
   rename_all(tolower) %>% 
   
   # Transformar variables de interés a numéricas
-  mutate_at("parentesco", as.numeric) %>% 
+  mutate_at(c("parentesco", "act_pnea1", "act_pnea2"), as.numeric) %>% 
   
   # Quitar de la población a huéspedes y trabajadores domésticos
   filter(!((parentesco >= 400 & parentesco < 500) | 
@@ -193,6 +193,15 @@ rm(list = setdiff(ls(), "poblacion"))
 gc()
 
 # I.2.2 Acceso a servicios de salud ---------------------------------------
+
+# Población económicamente activa
+poblacion <- poblacion %>% 
+  mutate(pea = case_when(
+    trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
+    (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
+    (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16 & !is.na(edad)    ~ 0,
+    TRUE                                                           ~ NA_real_
+  ))
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
