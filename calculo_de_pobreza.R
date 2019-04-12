@@ -129,36 +129,36 @@ trabajos <- trabajos %>%
     
     # Todo lo demás
     TRUE ~ NA_real_
-  ))
-
-trabajos <- trabajos %>% 
+  )) %>% 
   
   # Ocupación principal o secundaria
-  mutate(ocupa = if_else(condition = id_trabajo == 1, true = 1, false = 0))
-
-trabajos <- trabajos %>% 
+  mutate(ocupa = if_else(condition = id_trabajo == 1, true = 1, false = 0)) %>% 
+  
   # Distinción de prestaciones en trabajo principal y secundario
-  select(folioviv, foliohog, numren, id_trabajo, tipo_trab, ocupa)
-
-trabajos2 <- trabajos %>% 
+  select(folioviv, foliohog, numren, id_trabajo, tipo_trab, ocupa) %>% 
+  
+  # Separar tipos de trabajo
   gather(variable, valor, -(folioviv:id_trabajo)) %>% 
   unite(temporal, variable, id_trabajo, sep = "") %>% 
-  spread(temporal, valor)
-
-trabajos2 <- trabajos2 %>% 
-  mutate(ocupa2 = if_else(condition = is.na(ocupa2), true = 0, false = 1))
-
-# Identificar de población trabajadora (toda la que reporta al menos un empleo 
-# en `trabajos.dbf`)
-
-trabajos2 <- trabajos2 %>% 
-  mutate(trab = 1)
-
-# Acomodando variables
-
-trabajos2 <- trabajos2 %>% 
+  spread(temporal, valor) %>% 
+  mutate(
+    ocupa2 = if_else(condition = is.na(ocupa2), true = 0, false = 1),
+    
+    # Identificar de población trabajadora (toda la que reporta al menos un empleo 
+    # en `trabajos.dbf`)
+    trab = 1
+    ) %>% 
+  
+  # Acomodar variables
   select(folioviv:numren, tipo_trab1, ocupa1, tipo_trab2, ocupa2, trab) %>% 
   arrange(folioviv, foliohog, numren)
+
+# Exportando
+saveRDS(trabajos, "data/ocupados16.rds")
+
+rm(list = ls())
+gc()
+
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
