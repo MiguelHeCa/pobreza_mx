@@ -49,8 +49,8 @@ poblacion <- poblacion_brut %>%
     # Inasistencia escolar
     # Se calcula para personas con 3 años en adelante
     inas_esc = case_when(
-      asis_esc == "1" ~ 0,
-      asis_esc == "2" ~ 1
+      asis_esc == 1 ~ 0,
+      asis_esc == 2 ~ 1
     ),
     
     # Nivel educativo
@@ -248,9 +248,39 @@ poblacion <- poblacion %>%
     )
   )
 
-table(poblacion$smlab1, exclude = NULL)
-table(poblacion$smlab2, exclude = NULL)
-table(poblacion$smcv, exclude = NULL)
+poblacion <- poblacion %>% 
+  mutate(
+    
+    # Acceso directo a servicios de salud
+    sa_dir = case_when(
+      # Ocupación principal
+      tipo_trab1 == 1 & smlab1 == 1 |
+        tipo_trab1 > 1 & (smlab1 == 1 | smcv == 1) |
+        # Ocupación secundaria
+        tipo_trab2 == 1 & smlab2 == 1 |
+        tipo_trab2 > 1 & (smlab2 == 1 | smcv == 1) ~ 1,
+      TRUE ~ NA_real_
+    ),
+    
+    # Núcleos familiares
+    par = case_when(
+      parentesco >= 100 & parentesco < 200 ~ 1,
+      parentesco >= 200 & parentesco < 300 ~ 2,
+      parentesco >= 300 & parentesco < 400 ~ 3,
+      parentesco == 601                    ~ 4,
+      parentesco == 615                    ~ 5,
+      TRUE                                 ~ 6
+    ),
+    
+    # Información relativa a la asistencia escolar
+    inas_esc = case_when(
+      asis_esc == 1 ~ 0,
+      asis_esc == 2 ~ 1
+    )
+  )
+
+
+
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
