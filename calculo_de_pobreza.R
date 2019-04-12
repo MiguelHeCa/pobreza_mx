@@ -1,4 +1,20 @@
-# Carencia por rezago educativo
+# PROGRAMA PARA LA MEDICIÓN DE LA POBREZA
+
+# Todas las bases de datos del Modelo Estadístico 2016 para la continuidad del 
+# MCS-ENIGH pueden ser obtenidas en la página de Internet del INEGI,
+# www.inegi.org.mx. Originalmente todas fueron descargadas en formato DBF, 
+# pero fueron convertidas a RDS en el script `conversion_dbf.R` y guardadas en 
+# la carpeta `raw/` para gestionar mejor el tamaño de los archivos.
+
+# Se utilizan las siguientes bases:
+# Hogares:      hogares.rds
+# Población:    poblacion.rds
+# Ingresos:     ingresos.rds
+# Concentrado:  concentradohogar.rds
+# Trabajos:     trabajos.rds
+# Viviendas:    viviendas.rds
+# No monetario: gastospersona.rds y gastoshogar.rds
+
 
 # Paquetes ----------------------------------------------------------------
 
@@ -6,10 +22,9 @@ library(tidyverse)
 
 # I. Indicadores de Privación Social ======================================
 
-
 # I.1. Rezago educativo ---------------------------------------------------
 
-poblacion_brut <- readRDS("data/poblacion.rds")
+poblacion_brut <- readRDS("raw/poblacion.rds")
 
 poblacion <- poblacion_brut %>% 
   
@@ -103,16 +118,16 @@ poblacion <- poblacion_brut %>%
 saveRDS(poblacion, "data/ic_rezedu16.rds")
 
 rm(list = ls())
-gc()
 
+gc()
 
 
 # I.2.1. Población ocupada ------------------------------------------------
 
-trabajos <- readRDS("data/trabajos.rds")
+trabajos <- readRDS("raw/trabajos.rds")
 
 # Tipo de trabajor: identifica la población subordinada e independiente
-trabajos <- trabajos %>% 
+ocupados <- trabajos %>% 
   mutate(tipo_trab = case_when(
     
     # Subordinados
@@ -151,15 +166,7 @@ trabajos <- trabajos %>%
   select(folioviv:numren, tipo_trab1, ocupa1, tipo_trab2, ocupa2, trab) %>% 
   arrange(folioviv, foliohog, numren)
 
-# Exportar
-saveRDS(trabajos, "data/ocupados16.rds")
-
-rm(list = ls())
-gc()
-
-# I.2.2 Acceso a servicios de salud ---------------------------------------
-
-poblacion_brut <- readRDS("data/poblacion.rds")
+poblacion_brut <- readRDS("raw/poblacion.rds")
 
 poblacion <- poblacion_brut %>% 
   
@@ -167,11 +174,26 @@ poblacion <- poblacion_brut %>%
   rename_all(tolower) %>% 
   
   # Transformar variables de interés a numéricas
-  mutate_at(parentesco, as.numeric) %>% 
+  mutate_at("parentesco", as.numeric) %>% 
   
   # Quitar de la población a huéspedes y trabajadores domésticos
   filter(!((parentesco >= 400 & parentesco < 500) | 
-             parentesco >= 700 & parentesco < 800))
+             parentesco >= 700 & parentesco < 800)) %>% 
+  
+  arrange(folioviv, foliohog, numren) %>% 
+  
+  # Agregar variables de ocupados a población
+  left_join(ocupados, by = c("folioviv", "foliohog", "numren"))
+
+# Exportar
+saveRDS(ocupados, "data/ocupados16.rds")
+
+rm(list = setdiff(ls(), "poblacion"))
+
+gc()
+
+# I.2.2 Acceso a servicios de salud ---------------------------------------
+
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
