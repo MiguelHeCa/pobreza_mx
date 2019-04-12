@@ -142,10 +142,19 @@ trabajos <- trabajos %>%
 
 trabajos2 <- trabajos %>% 
   gather(variable, valor, -(folioviv:id_trabajo)) %>% 
-  unite(temporal, variable, id_trabajo) %>% 
+  unite(temporal, variable, id_trabajo, sep = "") %>% 
   spread(temporal, valor)
 
+trabajos2 <- trabajos2 %>% 
+  mutate(ocupa2 = if_else(condition = is.na(ocupa2), true = 0, false = 1))
 
+# Identificar de población trabajadora (toda la que reporta al menos un empleo 
+# en `trabajos.dbf`)
+
+trabajos2 <- trabajos2 %>% 
+  mutate(trab = 1)
+
+# Acomodando variables
 
 # I.3. Acceso a la seguridad social ---------------------------------------
 
@@ -163,6 +172,4 @@ trabajos2 <- trabajos %>%
 
 
 # II. Pobreza =============================================================
-
-
 
