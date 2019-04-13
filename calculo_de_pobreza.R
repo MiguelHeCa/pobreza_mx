@@ -305,7 +305,7 @@ poblacion <- poblacion %>%
       TRUE                                                ~ 0
     ),
     
-    # Hijos
+    # Descendientes
     hijo = case_when(
       par == 3 & sa_dir == 1                              &
         !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
@@ -335,16 +335,16 @@ poblacion <- poblacion %>%
   # Acceso directo a los servicios de salud de ...
   mutate(
     
-    # jefatura del hogar
+    # Jefatura del hogar
     jef_sa = jef_1,
     
-    # conyuge
+    # Conyuge
     cony_sa = case_when(
       cony_1 > 0 ~ 1,
       TRUE       ~ 0
     ),
     
-    # hijos(as)
+    # Descendientes
     hijo_sa = case_when(
       hijo_1 > 0 ~ 1,
       TRUE       ~ 0
@@ -362,8 +362,71 @@ poblacion <- poblacion %>%
     )
   )
 
+poblacion <- poblacion %>% 
+  
+  # Indicador de carencia por acceso a los servicios de salud
+  
+  mutate(
+    ic_asalud = case_when(
+      
+      # Acceso directo
+      sa_dir |
+        
+        # Parentesco directo: jefatura
+        par == 1 & cony_sa == 1 |
+        par == 1 & pea == 0 & hijo_sa == 1 |
+        
+        # Parentesco directo: cónyuge
+        par == 2 & jef_sa == 1 |
+        par == 2 & pea == 0 & hijo_sa == 1 |
+        
+        # Parentesco directo: descendientes
+        par == 3 & edad < 16 & jef_sa == 1 |
+        par == 3 & edad < 16 & cony_sa == 1 |
+        par == 3 & (edad >= 16 & edad <= 25) & inas_esc == 0 & jef_sa == 1 |
+        par == 3 & (edad >= 16 & edad <= 25) & inas_esc == 0 & cony_sa == 1 |
+        
+        # Parentesco directo: ascendentes
+        par == 4 & pea == 0 & jef_sa == 1 |
+        par == 5 & pea == 0 & cony_sa == 1 |
+        
+        # Otros núcleos familiares
+        s_salud == 1 |
+        
+        # Acceso reportado
+        segpop == 1 |
+        segpop == 2 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & 
+            is.na(inst_4) & is.na(inst_5) & is.na(inst_6)) |
+        segvol_2 == "2" ~ 0,
+      
+      # Se considera en esta situación a la población que:
+      # 1. No se encuentra afiliada o inscrita al Seguro Popular o alguna
+      # alguna institución que proporcione servicios médicos, ya sea por 
+      # prestación laboral, contratación voluntaria o afiliación de un 
+      # familiar por parentesco directo.
+      TRUE              ~ 1
+    ),
+    
+    # Población con al menos alguna discapacidad, sea física o mental
+    discap = case_when(
+      disc1 >= 1 & disc1 <= 7 |
+        disc2 >= 2 & disc2 <= 7 |
+        disc3 >= 3 & disc3 <= 7 |
+        disc4 >= 4 & disc4 <= 7 |
+        disc5 >= 5 & disc5 <= 7 |
+        disc6 >= 6 & disc6 <= 7 |
+        disc7 == 7 ~ 1,
+      disc1 == 8 | disc1 == "&" | is.na(disc1) ~ 0,
+      TRUE ~ 0
+    )
+  )
 
+poblacion <- poblacion %>% 
+  select(folioviv, foliohog, numren, sexo, discap, ic_asalud) %>% 
+  arrange(folioviv, foliohog, numren)
 
+saveRDS("data/ic_asalud16.rds")
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
