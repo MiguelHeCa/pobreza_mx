@@ -426,7 +426,7 @@ poblacion <- poblacion %>%
   select(folioviv, foliohog, numren, sexo, discap, ic_asalud) %>% 
   arrange(folioviv, foliohog, numren)
 
-saveRDS("data/ic_asalud16.rds")
+saveRDS(poblacion, "data/ic_asalud16.rds")
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
