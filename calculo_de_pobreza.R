@@ -183,8 +183,7 @@ poblacion <- poblacion_brut %>%
 # Exportar
 saveRDS(ocupados, "data/ocupados16.rds")
 
-rm(list = setdiff(ls(), "poblacion"))
-gc()
+rm(list = setdiff(ls(), "poblacion")); gc()
 
 # I.2.2 Acceso a servicios de salud ---------------------------------------
 
@@ -330,7 +329,41 @@ poblacion <- poblacion %>%
   left_join(suma_poblacion, by = c("folioviv", "foliohog"))
 
 
-rm(suma_poblacion)
+rm(suma_poblacion); gc()
+
+poblacion <- poblacion %>% 
+  # Acceso directo a los servicios de salud de ...
+  mutate(
+    
+    # jefatura del hogar
+    jef_sa = jef_1,
+    
+    # conyuge
+    cony_sa = case_when(
+      cony_1 > 0 ~ 1,
+      TRUE       ~ 0
+    ),
+    
+    # hijos(as)
+    hijo_sa = case_when(
+      hijo_1 > 0 ~ 1,
+      TRUE       ~ 0
+    ),
+    
+    # Otros núcleos familiares. Se identifica a través de la afiliación o
+    # inscripción a servicios de salud por algún familiar dentro o fuera del
+    # hogar, muerte del asegurado o por contratación propia
+    s_salud = case_when(
+      atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !(is.na(inscr_3) & is.na(inscr_4) & is.na(inscr_6) & is.na(inscr_7)) ~ 1,
+      !(is.na(segpop) & is.na(atemed)) ~ 0,
+      TRUE ~ NA_real_
+    )
+  )
+
+
+
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
