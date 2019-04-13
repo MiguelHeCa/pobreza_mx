@@ -279,7 +279,58 @@ poblacion <- poblacion %>%
     )
   )
 
+poblacion <- poblacion %>% 
+  
+  # Identificar los principales parentescos respecto a la jefatura del hogar
+  mutate(
+    
+    # Jefatura del hogar
+    jef = case_when(
+      par == 1 & sa_dir == 1                              &
+        !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
+        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)   &
+        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)  &
+        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)  ~ NA_real_,
+      par == 1 & sa_dir == 1                              ~ 1,
+      TRUE                                                ~ 0
+    ),
+    
+    # Cónyuge
+    cony = case_when(
+      par == 2 & sa_dir == 1                              &
+        !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
+        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)   &
+        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)  &
+        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)  ~ NA_real_,
+      par == 2 & sa_dir == 1                              ~ 1,
+      TRUE                                                ~ 0
+    ),
+    
+    # Hijos
+    hijo = case_when(
+      par == 3 & sa_dir == 1                              &
+        !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
+        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)   &
+        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)  &
+        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)  ~ NA_real_,
+      par == 3 & sa_dir == 1                              ~ 1,
+      TRUE                                                ~ 0
+    )
+  )
 
+# Crear suma de las indicadoras de parentesco
+suma_poblacion <- poblacion %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(jef_1 = sum(jef),
+            cony_1 = sum(cony),
+            hijo_1 = sum(hijo))
+
+# Unir la suma a los datos de población
+poblacion <- poblacion %>% 
+  left_join(suma_poblacion, by = c("folioviv", "foliohog"))
+
+
+rm(suma_poblacion)
 
 
 # I.3. Acceso a la seguridad social ---------------------------------------
