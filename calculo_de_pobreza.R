@@ -414,6 +414,50 @@ rm(list = ls()); gc()
 
 # I.3 Acceso a la seguridad social ----------------------------------------
 
+trabajos <- readRDS("raw/trabajos.rds")
+
+trabajos <- trabajos %>% 
+  mutate(
+    
+    # Tipo de trabajador
+    tipo_trab = case_when(
+      
+      # Subordinados
+      subor == 1                                          ~ 1,
+      
+      # Independientes que reciben un pago
+      (subor == 2 & indep == 1 & tiene_suel == 1) |
+      (subor == 2 & indep == 2 & pago == 1)               ~ 2,
+      
+      # Independientes que no reciben un pago
+      (subor == 2 & indep == 1 & tiene_suel == 2) |
+      (subor == 2 & indep == 2 & (pago == 2 | pago == 3)) ~ 3
+      ),
+    
+    # Prestaciones laborales: incapacidad en caso de enfermedad o maternidad
+    # con goce de sueldo y SAR o Afore
+    inclab = if_else(is.na(pres_7), true = 0, false = 1),
+    aforlab = if_else(is.na(pres_14), true = 0, false = 1),
+    
+    # Ocupación principal o secundaria
+    ocupa = case_when(
+      id_trabajo == 1 ~ 1,
+      id_trabajo == 2 ~ 0,
+      TRUE ~ NA_real_
+      )
+  )
+
+table(trabajos$tipo_trab, exclude = NULL)
+table(trabajos$inclab, exclude = NULL)
+table(trabajos$aforlab, exclude = NULL)
+table(trabajos$ocupa, exclude = NULL)
+
+
+
+
+
+table(trabajos2$ocupa2, exclude = NULL)
+table(trabajos2$trab, exclude = NULL)
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
