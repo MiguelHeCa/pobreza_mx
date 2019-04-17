@@ -188,12 +188,13 @@ asalud <- poblacion %>%
   #** Creación de variables para el indicador de carencia 
 
   # Población económicamente activa
-  mutate(pea = case_when(
+  mutate(
+  pea = case_when(
     trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
     (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
     (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16 & !is.na(edad)    ~ 0,
     TRUE                                                           ~ NA_real_
-  ),
+    ),
   
   #** Tipo de trabajo
   
@@ -528,12 +529,114 @@ segsoc <- poblacion %>%
   left_join(prestaciones, by = c("folioviv", "foliohog", "numren")) %>% 
   left_join(pensiones, by = c("folioviv", "foliohog", "numren"))
 
-# Exportar
+# Exportar prestaciones y pensiones, limpiar espacio de trabajo
 
 saveRDS(prestaciones, "data/prestaciones16.rds")
 saveRDS(pensiones, "data/pensiones16.rds")
 
 rm(list = setdiff(ls(), "segsoc")); gc()
+
+poblacion <- segsoc
+
+
+  
+poblacion2 <- segsoc %>% 
+  mutate(
+    pea = case_when(
+      trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
+      (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
+      (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16 & !is.na(edad)    ~ 0,
+      TRUE                                                           ~ NA_real_
+    ),
+    
+    #** Tipo de trabajo
+    
+    # Ocupación principal
+    tipo_trab1 = case_when(
+      pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
+      TRUE ~ tipo_trab1
+    ),
+    
+    # Ocupación secundaria
+    tipo_trab2 = case_when(
+      pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
+      TRUE ~ tipo_trab2
+    ),
+    
+    # Jubilados o pensionados
+    jub = case_when(
+      trabajo_mp == 2 & (act_pnea1 == 2 | act_pnea2 == 2) |
+        ing_pens > 0 |
+        inscr_2 == 2 ~ 1,
+      TRUE ~ 0
+    ),
+    
+    #** Prestaciones básicas
+    
+    #** Prestaciones laborales (servicios médicos)
+    
+    # Ocupación principal
+    smlab1 = case_when(
+      ocupa1 == 1 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !is.na(inscr_1) ~ 1,
+      ocupa1 == 1       ~ 0,
+      TRUE              ~ NA_real_
+    ),
+    
+    # Ocupación secundaria
+    smlab2 = case_when(
+      ocupa2 == 1 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !is.na(inscr_1) ~ 1,
+      ocupa2 == 1       ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    #** Contratación voluntaria
+    
+    # Servicios médicos
+    smcv = case_when(
+      edad >= 12 & edad <= 97 & atemed == 1 &
+        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+        !is.na(inscr_6)         ~ 1,
+      edad >= 12 & edad <= 97 ~ 0,
+      TRUE                      ~ NA_real_
+    ),
+    
+    # SAR o Afore
+    aforecv = case_when(
+      segvol_1 == 1 & edad >= 12 ~ 1,
+      is.na(segvol_1) & edad >= 12 ~ 0,
+      TRUE ~ NA_real_
+    )
+  ) %>% 
+  rename(aforlab1 = aforlab1_f,
+         inclab1 = inclab1_fi)
+
+table(poblacion$pea, exclude = NULL)
+table(poblacion$tipo_trab1, exclude = NULL)
+table(poblacion$tipo_trab2, exclude = NULL)
+table(poblacion$jub, exclude = NULL)
+table(poblacion$smlab1, exclude = NULL)
+table(poblacion$smlab2, exclude = NULL)
+table(poblacion$smcv, exclude = NULL)
+table(poblacion$aforecv, exclude = NULL)
+
+table(poblacion2$pea, exclude = NULL)
+table(poblacion2$tipo_trab1, exclude = NULL)
+table(poblacion2$tipo_trab2, exclude = NULL)
+table(poblacion2$jub, exclude = NULL)
+table(poblacion2$smlab1, exclude = NULL)
+table(poblacion2$smlab2, exclude = NULL)
+table(poblacion2$smcv, exclude = NULL)
+table(poblacion2$aforecv, exclude = NULL)
+
+
+
+
+
+
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
