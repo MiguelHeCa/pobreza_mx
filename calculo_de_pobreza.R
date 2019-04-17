@@ -418,7 +418,7 @@ rm(list = ls()); gc()
 
 trabajos <- readRDS("raw/trabajos.rds")
 
-trabajos <- trabajos %>% 
+prestaciones <- trabajos %>% 
   mutate(
     
     # Tipo de trabajador
@@ -447,11 +447,8 @@ trabajos <- trabajos %>%
       id_trabajo == 2 ~ 0,
       TRUE ~ NA_real_
       )
-  )
+  ) %>% 
 
-
-trabajos2 <- trabajos %>% 
-  
   # Seleccionar variables relevantes
   select(folioviv:numren,
          id_trabajo,
@@ -483,7 +480,46 @@ trabajos2 <- trabajos %>%
 
 # Exportar
 
-saveRDS(trabajos2, "data/prestaciones16.rds")
+rm(trabajos); gc()
+
+saveRDS(prestaciones, "data/prestaciones16.rds")
+
+
+## Ingresos por jubilaciones o pensiones
+
+ingresos <- readRDS("raw/ingresos.rds")
+
+pensiones <- ingresos %>% 
+  rename_all(tolower) %>% 
+  filter(clave == "P032" |
+           clave == "P033" |
+           clave == "P044" |
+           clave == "P045") %>% 
+  mutate(
+    
+    # Jubilaciones y/o pensiones originadas dentro o fuera del país
+    ing_pens = case_when(
+      clave == "P032" | clave == "P033" ~ rowMeans(select(., ing_1:ing_6)),
+      TRUE ~ 0
+    ),
+    
+    # Beneficio del programa 65 o más u otros programas para adultos mayores
+    ing_pam = case_when(
+      clave == "P044" | clave == "P045" ~ rowMeans(select(., ing_1:ing_6)),
+      TRUE ~ 0
+    )
+  ) %>% 
+  select(folioviv:numren, ing_pens:ing_pam) %>% 
+  group_by(folioviv, foliohog, numren) %>% 
+  summarise(ing_pens = sum(ing_pens),
+            ing_pam = sum(ing_pam)) %>% 
+  arrange(folioviv, foliohog, numren)
+
+# Exportar
+
+rm(ingresos); gc()
+
+saveRDS(pensiones, "data/pensiones16.rds")
 
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
