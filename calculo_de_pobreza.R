@@ -632,10 +632,109 @@ table(poblacion2$smlab2, exclude = NULL)
 table(poblacion2$smcv, exclude = NULL)
 table(poblacion2$aforecv, exclude = NULL)
 
+poblacion2 <- poblacion2 %>% 
+  mutate(
+    
+    #** Acceso a la directo a la seguridad social
+    
+    ss_dir = case_when(
+      
+      # Ocupación principal
+      tipo_trab1 == 1 & 
+        (smlab1 == 1 & inclab1 == 1 & aforlab1 == 1) |
+        tipo_trab1 == 2 &
+        (smlab1 == 1 | smcv == 1) &
+        (aforlab1 == 1 | aforecv == 1) |
+        tipo_trab1 == 3 &
+        (smlab1 == 1 | smcv == 1) &
+        aforecv == 1 |
+        
+      # Ocupación secundaria
+        tipo_trab2 == 1 &
+        (smlab2 == 1 & inclab2 == 1 & aforlab2 == 1) |
+        tipo_trab2 == 2 &
+        (smlab2 == 1 | smcv == 1) &
+        (aforlab2 == 1 | aforecv == 1) |
+        tipo_trab2 == 3 &
+        (smlab2 == 1 | smcv == 1) &
+        aforecv == 1 |
+        
+      # Jubilados y pensionados
+        jub == 1 ~ 1,
+      TRUE ~ 0
+    ),
+    
+    # Núcleos familiares
+    par = case_when(
+      parentesco >= 100 & parentesco < 200 ~ 1,
+      parentesco >= 200 & parentesco < 300 ~ 2,
+      parentesco >= 300 & parentesco < 400 ~ 3,
+      parentesco == 601                    ~ 4,
+      parentesco == 615                    ~ 5,
+      TRUE                                 ~ 6
+    ),
+    
+    # Información relativa a la asistencia escolar
+    inas_esc = case_when(
+      asis_esc == 1 ~ 0,
+      asis_esc == 2 ~ 1
+    )
+  )
 
+table(poblacion$ss_dir, exclude = NULL)
+table(poblacion$par, exclude = NULL)
+table(poblacion$inas_esc, exclude = NULL)
 
+table(poblacion2$ss_dir, exclude = NULL)
+table(poblacion2$par, exclude = NULL)
+table(poblacion2$inas_esc, exclude = NULL)
 
+poblacion2 <- poblacion2 %>% 
+  mutate(
+    #** Identificar los principales parentescos respecto a la jefatura del hogar
+    
+    # Jefatura del hogar
+    jef = case_when(
+      par == 1 & ss_dir == 1                                &
+        (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
+        (is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6))   &
+        (is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)   &
+        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7))   ~ NA_real_,
+      par == 1 & ss_dir == 1                                ~ 1,
+      TRUE                                                  ~ 0
+    ),
+    
+    # Cónyuge
+    cony = case_when(
+      par == 2 & ss_dir == 1                                &
+        (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
+        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
+        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
+        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
+      par == 2 & ss_dir == 1                                ~ 1,
+      TRUE                                                  ~ 0
+    ),
+    
+    # Descendientes
+    hijo = case_when(
+      par == 3 & ss_dir == 1                                &
+        (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
+        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
+        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
+        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
+      par == 3 & ss_dir == 1 & jub == 0                     |
+        par == 3 & ss_dir == 1 & jub == 1 & edad > 25       ~ 1,
+      TRUE                                                  ~ 0
+    )
+  )
 
+table(poblacion$jef, exclude = NULL)
+table(poblacion$cony, exclude = NULL)
+table(poblacion$hijo, exclude = NULL)
+
+table(poblacion2$jef, exclude = NULL)
+table(poblacion2$cony, exclude = NULL)
+table(poblacion2$hijo, exclude = NULL)
 
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
