@@ -270,37 +270,37 @@ asalud <- poblacion %>%
   
   #** Identificar los principales parentescos respecto a la jefatura del hogar
   
-  # Jefatura del hogar
+  # # Jefatura del hogar
   jef = case_when(
-    par == 1 & sa_dir == 1                              &
-      !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
-      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)   &
-      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)  &
-      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)  ~ NA_real_,
-    par == 1 & sa_dir == 1                              ~ 1,
-    TRUE                                                ~ 0
+    par == 1 & sa_dir == 1                                &
+      (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
+      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
+      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
+      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
+    par == 1 & sa_dir == 1                                ~ 1,
+    TRUE                                                  ~ 0
     ),
-  
+
   # Cónyuge
   cony = case_when(
-    par == 2 & sa_dir == 1                              &
-      !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
-      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)   &
-      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)  &
-      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)  ~ NA_real_,
-    par == 2 & sa_dir == 1                              ~ 1,
-    TRUE                                                ~ 0
+    par == 2 & sa_dir == 1                                &
+      (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
+      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
+      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
+      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
+    par == 2 & sa_dir == 1                                ~ 1,
+    TRUE                                                  ~ 0
     ),
-  
+
   # Descendientes
   hijo = case_when(
-    par == 3 & sa_dir == 1                              &
-      !(is.na(inst_2) & is.na(inst_3) & is.na(inscr_6)) &
-      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)   &
-      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)  &
-      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)  ~ NA_real_,
-    par == 3 & sa_dir == 1                              ~ 1,
-    TRUE                                                ~ 0
+    par == 3 & sa_dir == 1                                &
+      (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
+      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
+      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
+      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
+    par == 3 & sa_dir == 1                                ~ 1,
+    TRUE                                                  ~ 0
     )
   )
 
