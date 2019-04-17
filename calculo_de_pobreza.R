@@ -154,6 +154,8 @@ ocupados <- trabajos %>%
   gather(variable, valor, -(folioviv:id_trabajo)) %>% 
   unite(temporal, variable, id_trabajo, sep = "") %>% 
   spread(temporal, valor) %>% 
+  
+  # Población ocupada
   mutate(
     ocupa2 = if_else(condition = is.na(ocupa2), true = 0, false = 1),
     
@@ -447,17 +449,42 @@ trabajos <- trabajos %>%
       )
   )
 
-table(trabajos$tipo_trab, exclude = NULL)
-table(trabajos$inclab, exclude = NULL)
-table(trabajos$aforlab, exclude = NULL)
-table(trabajos$ocupa, exclude = NULL)
 
+trabajos2 <- trabajos %>% 
+  
+  # Seleccionar variables relevantes
+  select(folioviv:numren,
+         id_trabajo,
+         tipo_trab,
+         inclab,
+         aforlab,
+         ocupa) %>% 
+  # Separar tipos de trabajo
+  gather(variable, valor, -(folioviv:id_trabajo)) %>% 
+  unite(temporal, variable, id_trabajo, sep = "") %>% 
+  spread(temporal, valor) %>% 
+  
+  # Recodificar ocupa2
+  mutate(ocupa2 = if_else(is.na(ocupa2), true = 0, false = 1),
+         trab = 1) %>% 
+  
+  # Eliminar variables "inclab1" y "aforlab1" y ordenar el resto
+  select(
+    folioviv:numren,
+    tipo_trab1,
+    ocupa1,
+    tipo_trab2,
+    inclab2,
+    aforlab2,
+    ocupa2,
+    trab
+  ) %>% 
+  arrange(folioviv, foliohog, numren)
 
+# Exportar
 
+saveRDS(trabajos2, "data/prestaciones16.rds")
 
-
-table(trabajos2$ocupa2, exclude = NULL)
-table(trabajos2$trab, exclude = NULL)
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
