@@ -308,7 +308,8 @@ suma_poblacion <- asalud %>%
   group_by(folioviv, foliohog) %>% 
   summarise(jef_1 = sum(jef),
             cony_1 = sum(cony),
-            hijo_1 = sum(hijo))
+            hijo_1 = sum(hijo)) %>% 
+  ungroup()
 
 #** Unir la suma a los datos de población
 asalud <- asalud %>% 
@@ -478,14 +479,7 @@ prestaciones <- trabajos %>%
   ) %>% 
   arrange(folioviv, foliohog, numren)
 
-# Exportar
-
-rm(trabajos); gc()
-
-saveRDS(prestaciones, "data/prestaciones16.rds")
-
-
-## Ingresos por jubilaciones o pensiones
+# Ingresos por jubilaciones o pensiones
 
 ingresos <- readRDS("raw/ingresos.rds")
 
@@ -513,14 +507,33 @@ pensiones <- ingresos %>%
   group_by(folioviv, foliohog, numren) %>% 
   summarise(ing_pens = sum(ing_pens),
             ing_pam = sum(ing_pam)) %>% 
+  ungroup() %>% 
   arrange(folioviv, foliohog, numren)
+
+# Construcción del indicador
+
+poblacion <- readRDS("raw/poblacion.rds")
+
+segsoc <- poblacion %>% 
+  
+  # Nombres de variables en minúsculas
+  rename_all(tolower) %>% 
+  
+  # Transformar variables de interés a numéricas
+  mutate_at("parentesco", as.numeric) %>% 
+  
+  # Quitar de la población a huéspedes y trabajadores domésticos
+  filter(!((parentesco >= 400 & parentesco < 500) | 
+             parentesco >= 700 & parentesco < 800)) %>% 
+  left_join(prestaciones, by = c("folioviv", "foliohog", "numren")) %>% 
+  left_join(pensiones, by = c("folioviv", "foliohog", "numren"))
 
 # Exportar
 
-rm(ingresos); gc()
-
+saveRDS(prestaciones, "data/prestaciones16.rds")
 saveRDS(pensiones, "data/pensiones16.rds")
 
+rm(list = setdiff(ls(), "segsoc")); gc()
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 

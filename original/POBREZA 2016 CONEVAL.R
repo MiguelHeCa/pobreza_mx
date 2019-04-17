@@ -709,8 +709,8 @@ ingresos = ingresos[index,]
 detach(ingresos)
 
 attach(ingresos)
-ingresos$ing_pens[(clave == "P032" |
-                     clave == "P033")] = rowMeans(data.frame(ing_1[(clave == "P032" |
+ingresos$ing_pens[(clave == "P032" | clave == "P033")] = rowMeans(
+  data.frame(ing_1[(clave == "P032" |
                                                                       clave == "P033")], ing_2[(clave == "P032" |
                                                                                                   clave == "P033")], ing_3[(clave == "P032" |
                                                                                                                               clave == "P033")], ing_4[(clave == "P032" |
