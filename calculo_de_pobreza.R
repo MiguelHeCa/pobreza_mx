@@ -736,6 +736,17 @@ table(poblacion2$jef, exclude = NULL)
 table(poblacion2$cony, exclude = NULL)
 table(poblacion2$hijo, exclude = NULL)
 
+suma_poblacion <- poblacion2 %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(jef_1 = sum(jef),
+            cony_1 = sum(cony),
+            hijo_1 = sum(hijo)) %>% 
+  ungroup()
+
+poblacion2 <- poblacion2 %>% 
+  left_join(suma_poblacion, by = c("folioviv", "foliohog"))
+
+setequal(poblacion, poblacion2)
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
