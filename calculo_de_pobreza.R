@@ -748,6 +748,10 @@ poblacion2 <- poblacion2 %>%
 
 setequal(poblacion, poblacion2)
 
+
+
+
+
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
 
