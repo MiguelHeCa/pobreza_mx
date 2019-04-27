@@ -366,8 +366,7 @@ asalud <- asalud %>%
         par == 3 & 
         (edad < 16 & (jef_sa == 1 | cony_sa == 1) |
         (edad >= 16 & edad <= 25) &
-        inas_esc == 0 &
-        (jef_sa == 1 | cony_sa == 1)) |
+        inas_esc == 0 & (jef_sa == 1 | cony_sa == 1)) |
         
         # Parentesco directo: ascendentes
         pea == 0 & (par == 4 & jef_sa == 1 | par == 5 & cony_sa == 1) |
@@ -406,8 +405,6 @@ asalud <- asalud %>%
   # Depurar variables
   select(folioviv, foliohog, numren, sexo, discap, ic_asalud) %>% 
   arrange(folioviv, foliohog, numren)
-
-setequal(asalud, asalud1)
 
 # Exportar
 saveRDS(ocupados, "data/ocupados16.rds")
@@ -799,8 +796,19 @@ saveRDS(segsoc, "data/ic_segsoc16.rds")
 rm(list = ls()); gc()
 
 
+
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
+hogares <- readRDS("raw/hogares.rds")
+
+vivienda <- readRDS("raw/viviendas.rds")
+
+cev <- hogares %>% 
+  left_join(vivienda, by = "folioviv") %>% 
+  arrange(folioviv)
+
+
+setequal(cev, hogares2)
 
 # I.5 Acceso en los servicios básicos en la vivienda ----------------------
 
