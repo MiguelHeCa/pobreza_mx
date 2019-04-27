@@ -201,13 +201,13 @@ asalud <- poblacion %>%
   # Ocupación principal
   tipo_trab1 = case_when(
     pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
-    TRUE ~ tipo_trab1
+    TRUE                             ~ tipo_trab1
     ),
   
   # Ocupación secundaria
   tipo_trab2 = case_when(
     pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
-    TRUE ~ tipo_trab2
+    TRUE                             ~ tipo_trab2
     ),
   
   #** Prestaciones básicas
@@ -217,7 +217,7 @@ asalud <- poblacion %>%
   # Ocupación principal
   smlab1 = case_when(
     ocupa1 == 1 & atemed == 1 &
-      !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+      (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)) &
       !is.na(inscr_1) ~ 1,
     ocupa1 == 1       ~ 0,
     TRUE              ~ NA_real_
@@ -226,19 +226,19 @@ asalud <- poblacion %>%
   # Ocupación secundaria
   smlab2 = case_when(
     ocupa2 == 1 & atemed == 1 &
-      !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
+      (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)) &
       !is.na(inscr_1) ~ 1,
     ocupa2 == 1       ~ 0,
-    TRUE ~ NA_real_
+    TRUE              ~ NA_real_
     ),
   
   # Contratación voluntaria: servicios médicos
   smcv = case_when(
     edad >= 12 & edad <= 97 & atemed == 1 &
-      !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
-      !is.na(inscr_6)         ~ 1,
+      (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)) &
+      !is.na(inscr_6)       ~ 1,
     edad >= 12 & edad <= 97 ~ 0,
-    TRUE                      ~ NA_real_
+    TRUE                    ~ NA_real_
     ),
   
   # Acceso directo a servicios de salud
@@ -344,8 +344,8 @@ asalud <- asalud %>%
           ) &
         (
           !is.na(inscr_3) | !is.na(inscr_4) | !is.na(inscr_6) | !is.na(inscr_7)
-          )                            ~ 1,
-      !(is.na(segpop) & is.na(atemed)) ~ 0,
+          )                           ~ 1,
+      !is.na(segpop) & !is.na(atemed) ~ 0,
       TRUE ~ NA_real_
     ),
     
@@ -354,25 +354,23 @@ asalud <- asalud %>%
     ic_asalud = case_when(
       
       # Acceso directo
-      sa_dir |
+      sa_dir == 1 |
         
         # Parentesco directo: jefatura
-        par == 1 & cony_sa == 1 |
-        par == 1 & pea == 0 & hijo_sa == 1 |
+        par == 1 & (cony_sa == 1 | pea == 0 & hijo_sa == 1) |
         
         # Parentesco directo: cónyuge
-        par == 2 & jef_sa == 1 |
-        par == 2 & pea == 0 & hijo_sa == 1 |
+        par == 2 & (jef_sa == 1 | pea == 0 & hijo_sa == 1) |
         
         # Parentesco directo: descendientes
-        par == 3 & edad < 16 & jef_sa == 1 |
-        par == 3 & edad < 16 & cony_sa == 1 |
-        par == 3 & (edad >= 16 & edad <= 25) & inas_esc == 0 & jef_sa == 1 |
-        par == 3 & (edad >= 16 & edad <= 25) & inas_esc == 0 & cony_sa == 1 |
+        par == 3 & 
+        (edad < 16 & (jef_sa == 1 | cony_sa == 1) |
+        (edad >= 16 & edad <= 25) &
+        inas_esc == 0 &
+        (jef_sa == 1 | cony_sa == 1)) |
         
         # Parentesco directo: ascendentes
-        par == 4 & pea == 0 & jef_sa == 1 |
-        par == 5 & pea == 0 & cony_sa == 1 |
+        pea == 0 & (par == 4 & jef_sa == 1 | par == 5 & cony_sa == 1) |
         
         # Otros núcleos familiares
         s_salud == 1 |
@@ -380,8 +378,8 @@ asalud <- asalud %>%
         # Acceso reportado
         segpop == 1 |
         segpop == 2 & atemed == 1 &
-        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & 
-            is.na(inst_4) & is.na(inst_5) & is.na(inst_6)) |
+        (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | 
+            !is.na(inst_4) | !is.na(inst_5) | !is.na(inst_6)) |
         segvol_2 == "2" ~ 0,
       
       # Se considera en esta situación a la población que:
@@ -400,15 +398,16 @@ asalud <- asalud %>%
         disc4 >= 4 & disc4 <= 7 |
         disc5 >= 5 & disc5 <= 7 |
         disc6 >= 6 & disc6 <= 7 |
-        disc7 == 7 ~ 1,
-      disc1 == 8 | disc1 == "&" | is.na(disc1) ~ 0,
-      TRUE ~ 0
+        disc7 == 7                             ~ 1,
+      disc1 == 8 | disc1 == "&" | is.na(disc1) ~ 0
     )
   ) %>% 
   
   # Depurar variables
   select(folioviv, foliohog, numren, sexo, discap, ic_asalud) %>% 
   arrange(folioviv, foliohog, numren)
+
+setequal(asalud, asalud1)
 
 # Exportar
 saveRDS(ocupados, "data/ocupados16.rds")
