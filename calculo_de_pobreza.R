@@ -339,11 +339,11 @@ asalud <- asalud %>%
     # hogar, muerte del asegurado o por contratación propia
     s_salud = case_when(
       atemed == 1 &
-        !(
-          is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)
+        (
+          !is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)
           ) &
-        !(
-          is.na(inscr_3) & is.na(inscr_4) & is.na(inscr_6) & is.na(inscr_7)
+        (
+          !is.na(inscr_3) | !is.na(inscr_4) | !is.na(inscr_6) | !is.na(inscr_7)
           )                            ~ 1,
       !(is.na(segpop) & is.na(atemed)) ~ 0,
       TRUE ~ NA_real_
