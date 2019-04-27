@@ -805,6 +805,108 @@ table(poblacion2$hijo_ss, exclude = NULL)
 table(poblacion2$s_salud, exclude = NULL)
 table(poblacion2$pam, exclude = NULL)
 
+poblacion3 <- poblacion2 %>% 
+  
+  #** Indicador de carencia por acceso a la seguridad social
+  
+  # No se considera a la población que:
+  # 1. Disponga de acceso directo a la seguridad social,
+  # 2. Cuente con parentesco directo con alguna persona dentro del hogar
+  # que tenga acceso directo,
+  # 3. Reciba servicios médicos por parte de algún familiar dentro o
+  # fuera del hogar, por muerte del asegurado o por contratación propia, o,
+  # 4. Reciba ingresos por parte de un programa de adultos mayores.
+  
+  # Se considera en situación de carencia aquella población en 
+  # cualquier otra situación.
+  mutate(
+    ic_segsoc = case_when(
+      # Acceso directo
+      ss_dir == 1 |
+      
+        # Parentesto directo: jefatura
+        (par == 1 & cony_ss == 1) |
+        (par == 1 & pea == 0 & hijo_ss == 1) |
+        
+        # Parentesto directo: cónyuge
+        (par == 2 & jef_ss == 1) |
+        (par == 2 & pea == 0 & hijo_ss == 1) |
+        
+        # Parentesto directo: descendientes
+        (par == 3 & edad < 16 & jef_ss == 1) |
+        (par == 3 & edad < 16 & cony_ss == 1) |
+        (par == 3 & (edad >= 16 & edad <= 25) & inas_esc == 0 & jef_ss == 1) |
+        (par == 3 & (edad >= 16 & edad <= 25) & inas_esc == 0 & cony_ss == 1) |
+        
+        # Parentesto directo: ascendientes
+        (par == 4 & pea == 0 & jef_ss == 1) |
+        (par == 5 & pea == 0 & cony_ss == 1) |
+        
+        # Otros núcleos familiares
+        s_salud == 1 |
+        
+        # Programa de adultos mayores
+        pam == 1 ~ 0,
+      
+      # Carencia
+      TRUE       ~ 1
+    )
+  )
+
+
+poblacion2 <- poblacion2 %>% 
+  
+  #** Indicador de carencia por acceso a la seguridad social
+  
+  # No se considera a la población que:
+  # 1. Disponga de acceso directo a la seguridad social,
+  # 2. Cuente con parentesco directo con alguna persona dentro del hogar
+  # que tenga acceso directo,
+  # 3. Reciba servicios médicos por parte de algún familiar dentro o
+  # fuera del hogar, por muerte del asegurado o por contratación propia, o,
+  # 4. Reciba ingresos por parte de un programa de adultos mayores.
+  
+  # Se considera en situación de carencia aquella población en 
+  # cualquier otra situación.
+  mutate(
+    ic_segsoc = case_when(
+      # Acceso directo
+      ss_dir == 1 |
+        
+        # Parentesto directo: jefatura
+        (par == 1 & (cony_ss == 1 | pea == 0 & hijo_ss == 1)) |
+        
+        # Parentesto directo: cónyuge
+        (par == 2 & (jef_ss == 1 | pea == 0 & hijo_ss == 1)) |
+        
+        # Parentesto directo: descendientes
+        (par == 3 & 
+           (jef_ss == 1 | cony_ss == 1) &
+           (edad < 16 | edad >= 16 & edad <= 25 & inas_esc == 0)) |
+        
+        # Parentesto directo: ascendientes
+        (pea == 0 & (par == 4 & jef_ss == 1 | par == 5 & cony_ss == 1)) |
+        
+        # Otros núcleos familiares
+        s_salud == 1 |
+        
+        # Programa de adultos mayores
+        pam == 1 ~ 0,
+      
+      # Carencia
+      TRUE       ~ 1
+    )
+  )
+
+
+
+table(poblacion$ss_dir, exclude = NULL)
+table(poblacion$ic_segsoc, exclude = NULL)
+
+table(poblacion3$ss_dir, exclude = NULL)
+table(poblacion3$ic_segsoc, exclude = NULL)
+
+
 setequal(poblacion, poblacion2)
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
