@@ -535,13 +535,15 @@ saveRDS(prestaciones, "data/prestaciones16.rds")
 saveRDS(pensiones, "data/pensiones16.rds")
 
 rm(list = setdiff(ls(), "segsoc")); gc()
-
+###
 poblacion <- segsoc
-
+###
 
   
 poblacion2 <- segsoc %>% 
   mutate(
+    
+    # Población económicamente activa (PEA). Personas de 16 años o más.
     pea = case_when(
       trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
       (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
@@ -746,12 +748,64 @@ suma_poblacion <- poblacion2 %>%
 poblacion2 <- poblacion2 %>% 
   left_join(suma_poblacion, by = c("folioviv", "foliohog"))
 
+
+
+poblacion2 <- poblacion2 %>% 
+  # Acceso directo a la seguridad social de ...
+  mutate(
+    
+    # Jefatura del hogar
+    jef_ss = jef_1,
+    
+    # Conyuge
+    cony_ss = case_when(
+      cony_1 > 0 ~ 1,
+      TRUE       ~ 0
+    ),
+    
+    # Descendientes
+    hijo_ss = case_when(
+      hijo_1 > 0 ~ 1,
+      TRUE       ~ 0
+    ),
+    
+    # Otros núcleos familiares. Se identifica a la población con acceso a la 
+    # seguridad social mediante otros núcleos familiares a través de la 
+    # afiliación o inscripción a servicios de salud por algún familiar dentro o
+    # fuera del hogar, muerte del asegurado o por contratación propia
+    s_salud = case_when(
+      atemed == 1 &
+        (
+          !is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)
+        ) &
+        (
+          !is.na(inscr_3) | !is.na(inscr_4) | !is.na(inscr_6) | !is.na(inscr_7)
+        ) ~ 1,
+      !(is.na(segpop) & is.na(atemed)) ~ 0,
+      TRUE ~ NA_real_
+    ),
+    
+    # Programas sociales de pensiones para adultos mayores
+    pam = case_when(
+      edad >= 65 & ing_pam > 0 ~ 1,
+      edad >= 65               ~ 0
+    )
+  )
+
+
+table(poblacion$jef_ss, exclude = NULL)
+table(poblacion$cony_ss, exclude = NULL)
+table(poblacion$hijo_ss, exclude = NULL)
+table(poblacion$s_salud, exclude = NULL)
+table(poblacion$pam, exclude = NULL)
+
+table(poblacion2$jef_ss, exclude = NULL)
+table(poblacion2$cony_ss, exclude = NULL)
+table(poblacion2$hijo_ss, exclude = NULL)
+table(poblacion2$s_salud, exclude = NULL)
+table(poblacion2$pam, exclude = NULL)
+
 setequal(poblacion, poblacion2)
-
-
-
-
-
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
 
