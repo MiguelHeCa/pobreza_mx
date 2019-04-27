@@ -527,349 +527,15 @@ segsoc <- poblacion %>%
   filter(!((parentesco >= 400 & parentesco < 500) | 
              parentesco >= 700 & parentesco < 800)) %>% 
   left_join(prestaciones, by = c("folioviv", "foliohog", "numren")) %>% 
-  left_join(pensiones, by = c("folioviv", "foliohog", "numren"))
-
-# Exportar prestaciones y pensiones, limpiar espacio de trabajo
-
-saveRDS(prestaciones, "data/prestaciones16.rds")
-saveRDS(pensiones, "data/pensiones16.rds")
-
-rm(list = setdiff(ls(), "segsoc")); gc()
-###
-poblacion <- segsoc
-###
-
-  
-poblacion2 <- segsoc %>% 
+  left_join(pensiones, by = c("folioviv", "foliohog", "numren")) %>% 
   mutate(
     
     # Población económicamente activa (PEA). Personas de 16 años o más.
     pea = case_when(
-      trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
-      (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
-      (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16 & !is.na(edad)    ~ 0,
-      TRUE                                                           ~ NA_real_
-    ),
-    
-    #** Tipo de trabajo
-    
-    # Ocupación principal
-    tipo_trab1 = case_when(
-      pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
-      TRUE ~ tipo_trab1
-    ),
-    
-    # Ocupación secundaria
-    tipo_trab2 = case_when(
-      pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
-      TRUE ~ tipo_trab2
-    ),
-    
-    # Jubilados o pensionados
-    jub = case_when(
-      trabajo_mp == 2 & (act_pnea1 == 2 | act_pnea2 == 2) |
-        ing_pens > 0 |
-        inscr_2 == 2 ~ 1,
-      TRUE ~ 0
-    ),
-    
-    #** Prestaciones básicas
-    
-    #** Prestaciones laborales (servicios médicos)
-    
-    # Ocupación principal
-    smlab1 = case_when(
-      ocupa1 == 1 & atemed == 1 &
-        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
-        !is.na(inscr_1) ~ 1,
-      ocupa1 == 1       ~ 0,
-      TRUE              ~ NA_real_
-    ),
-    
-    # Ocupación secundaria
-    smlab2 = case_when(
-      ocupa2 == 1 & atemed == 1 &
-        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
-        !is.na(inscr_1) ~ 1,
-      ocupa2 == 1       ~ 0,
-      TRUE ~ NA_real_
-    ),
-    
-    #** Contratación voluntaria
-    
-    # Servicios médicos
-    smcv = case_when(
-      edad >= 12 & edad <= 97 & atemed == 1 &
-        !(is.na(inst_1) & is.na(inst_2) & is.na(inst_3) & is.na(inst_4)) &
-        !is.na(inscr_6)         ~ 1,
-      edad >= 12 & edad <= 97 ~ 0,
-      TRUE                      ~ NA_real_
-    ),
-    
-    # SAR o Afore
-    aforecv = case_when(
-      segvol_1 == 1 & edad >= 12 ~ 1,
-      is.na(segvol_1) & edad >= 12 ~ 0,
-      TRUE ~ NA_real_
-    )
-  ) %>% 
-  rename(aforlab1 = aforlab1_f,
-         inclab1 = inclab1_fi)
-
-table(poblacion$pea, exclude = NULL)
-table(poblacion$tipo_trab1, exclude = NULL)
-table(poblacion$tipo_trab2, exclude = NULL)
-table(poblacion$jub, exclude = NULL)
-table(poblacion$smlab1, exclude = NULL)
-table(poblacion$smlab2, exclude = NULL)
-table(poblacion$smcv, exclude = NULL)
-table(poblacion$aforecv, exclude = NULL)
-
-table(poblacion2$pea, exclude = NULL)
-table(poblacion2$tipo_trab1, exclude = NULL)
-table(poblacion2$tipo_trab2, exclude = NULL)
-table(poblacion2$jub, exclude = NULL)
-table(poblacion2$smlab1, exclude = NULL)
-table(poblacion2$smlab2, exclude = NULL)
-table(poblacion2$smcv, exclude = NULL)
-table(poblacion2$aforecv, exclude = NULL)
-
-poblacion2 <- poblacion2 %>% 
-  mutate(
-    
-    #** Acceso a la directo a la seguridad social
-    
-    ss_dir = case_when(
-      
-      # Ocupación principal
-      tipo_trab1 == 1 & 
-        (smlab1 == 1 & inclab1 == 1 & aforlab1 == 1) |
-        tipo_trab1 == 2 &
-        (smlab1 == 1 | smcv == 1) &
-        (aforlab1 == 1 | aforecv == 1) |
-        tipo_trab1 == 3 &
-        (smlab1 == 1 | smcv == 1) &
-        aforecv == 1 |
-        
-      # Ocupación secundaria
-        tipo_trab2 == 1 &
-        (smlab2 == 1 & inclab2 == 1 & aforlab2 == 1) |
-        tipo_trab2 == 2 &
-        (smlab2 == 1 | smcv == 1) &
-        (aforlab2 == 1 | aforecv == 1) |
-        tipo_trab2 == 3 &
-        (smlab2 == 1 | smcv == 1) &
-        aforecv == 1 |
-        
-      # Jubilados y pensionados
-        jub == 1 ~ 1,
-      TRUE ~ 0
-    ),
-    
-    # Núcleos familiares
-    par = case_when(
-      parentesco >= 100 & parentesco < 200 ~ 1,
-      parentesco >= 200 & parentesco < 300 ~ 2,
-      parentesco >= 300 & parentesco < 400 ~ 3,
-      parentesco == 601                    ~ 4,
-      parentesco == 615                    ~ 5,
-      TRUE                                 ~ 6
-    ),
-    
-    # Información relativa a la asistencia escolar
-    inas_esc = case_when(
-      asis_esc == 1 ~ 0,
-      asis_esc == 2 ~ 1
-    )
-  )
-
-table(poblacion$ss_dir, exclude = NULL)
-table(poblacion$par, exclude = NULL)
-table(poblacion$inas_esc, exclude = NULL)
-
-table(poblacion2$ss_dir, exclude = NULL)
-table(poblacion2$par, exclude = NULL)
-table(poblacion2$inas_esc, exclude = NULL)
-
-poblacion2 <- poblacion2 %>% 
-  mutate(
-    #** Identificar los principales parentescos respecto a la jefatura del hogar
-    
-    # Jefatura del hogar
-    jef = case_when(
-      par == 1 & ss_dir == 1                                &
-        (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
-        (is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6))   &
-        (is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)   &
-        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7))   ~ NA_real_,
-      par == 1 & ss_dir == 1                                ~ 1,
-      TRUE                                                  ~ 0
-    ),
-    
-    # Cónyuge
-    cony = case_when(
-      par == 2 & ss_dir == 1                                &
-        (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
-        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
-        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
-        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
-      par == 2 & ss_dir == 1                                ~ 1,
-      TRUE                                                  ~ 0
-    ),
-    
-    # Descendientes
-    hijo = case_when(
-      par == 3 & ss_dir == 1                                &
-        (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
-        is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
-        is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
-        is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
-      par == 3 & ss_dir == 1 & jub == 0                     |
-        par == 3 & ss_dir == 1 & jub == 1 & edad > 25       ~ 1,
-      TRUE                                                  ~ 0
-    )
-  )
-
-table(poblacion$jef, exclude = NULL)
-table(poblacion$cony, exclude = NULL)
-table(poblacion$hijo, exclude = NULL)
-
-table(poblacion2$jef, exclude = NULL)
-table(poblacion2$cony, exclude = NULL)
-table(poblacion2$hijo, exclude = NULL)
-
-suma_poblacion <- poblacion2 %>% 
-  group_by(folioviv, foliohog) %>% 
-  summarise(jef_1 = sum(jef),
-            cony_1 = sum(cony),
-            hijo_1 = sum(hijo)) %>% 
-  ungroup()
-
-poblacion2 <- poblacion2 %>% 
-  left_join(suma_poblacion, by = c("folioviv", "foliohog"))
-
-
-
-poblacion2 <- poblacion2 %>% 
-  # Acceso directo a la seguridad social de ...
-  mutate(
-    
-    # Jefatura del hogar
-    jef_ss = jef_1,
-    
-    # Conyuge
-    cony_ss = case_when(
-      cony_1 > 0 ~ 1,
-      TRUE       ~ 0
-    ),
-    
-    # Descendientes
-    hijo_ss = case_when(
-      hijo_1 > 0 ~ 1,
-      TRUE       ~ 0
-    ),
-    
-    # Otros núcleos familiares. Se identifica a la población con acceso a la 
-    # seguridad social mediante otros núcleos familiares a través de la 
-    # afiliación o inscripción a servicios de salud por algún familiar dentro o
-    # fuera del hogar, muerte del asegurado o por contratación propia
-    s_salud = case_when(
-      atemed == 1 &
-        (
-          !is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)
-        ) &
-        (
-          !is.na(inscr_3) | !is.na(inscr_4) | !is.na(inscr_6) | !is.na(inscr_7)
-        ) ~ 1,
-      !(is.na(segpop) & is.na(atemed)) ~ 0,
-      TRUE ~ NA_real_
-    ),
-    
-    # Programas sociales de pensiones para adultos mayores
-    pam = case_when(
-      edad >= 65 & ing_pam > 0 ~ 1,
-      edad >= 65               ~ 0
-    )
-  )
-
-
-table(poblacion$jef_ss, exclude = NULL)
-table(poblacion$cony_ss, exclude = NULL)
-table(poblacion$hijo_ss, exclude = NULL)
-table(poblacion$s_salud, exclude = NULL)
-table(poblacion$pam, exclude = NULL)
-
-table(poblacion2$jef_ss, exclude = NULL)
-table(poblacion2$cony_ss, exclude = NULL)
-table(poblacion2$hijo_ss, exclude = NULL)
-table(poblacion2$s_salud, exclude = NULL)
-table(poblacion2$pam, exclude = NULL)
-
-
-poblacion2 <- poblacion2 %>% 
-  
-  #** Indicador de carencia por acceso a la seguridad social
-  
-  # No se considera a la población que:
-  # 1. Disponga de acceso directo a la seguridad social,
-  # 2. Cuente con parentesco directo con alguna persona dentro del hogar
-  # que tenga acceso directo,
-  # 3. Reciba servicios médicos por parte de algún familiar dentro o
-  # fuera del hogar, por muerte del asegurado o por contratación propia, o,
-  # 4. Reciba ingresos por parte de un programa de adultos mayores.
-  
-  # Se considera en situación de carencia aquella población en 
-  # cualquier otra situación.
-  mutate(
-    ic_segsoc = case_when(
-      # Acceso directo
-      ss_dir == 1 |
-        
-        # Parentesto directo: jefatura
-        (par == 1 & (cony_ss == 1 | pea == 0 & hijo_ss == 1)) |
-        
-        # Parentesto directo: cónyuge
-        (par == 2 & (jef_ss == 1 | pea == 0 & hijo_ss == 1)) |
-        
-        # Parentesto directo: descendientes
-        (par == 3 & 
-           (jef_ss == 1 | cony_ss == 1) &
-           (edad < 16 | edad >= 16 & edad <= 25 & inas_esc == 0)) |
-        
-        # Parentesto directo: ascendientes
-        (pea == 0 & (par == 4 & jef_ss == 1 | par == 5 & cony_ss == 1)) |
-        
-        # Otros núcleos familiares
-        s_salud == 1 |
-        
-        # Programa de adultos mayores
-        pam == 1 ~ 0,
-      
-      # Carencia
-      TRUE       ~ 1
-    )
-  )
-
-
-
-table(poblacion$ss_dir, exclude = NULL)
-table(poblacion$ic_segsoc, exclude = NULL)
-
-table(poblacion2$ss_dir, exclude = NULL)
-table(poblacion2$ic_segsoc, exclude = NULL)
-
-
-setequal(poblacion, poblacion2)
-
-segsoc <- segsoc %>% 
-  mutate(
-    
-    # Población económicamente activa (PEA). Personas de 16 años o más.
-    pea = case_when(
-      trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
-      (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
-      (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16 & !is.na(edad)    ~ 0,
-      TRUE                                                           ~ NA_real_
+      trab == 1 & edad >= 16                          ~ 1,
+      (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 ~ 2,
+      (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16    ~ 0,
+      TRUE                                            ~ NA_real_
     ),
     
     #** Tipo de trabajo
@@ -1109,9 +775,30 @@ segsoc <- segsoc %>%
       # Carencia
       TRUE       ~ 1
     )
-  )
+  ) %>% 
+  select(folioviv,
+         foliohog,
+         numren,
+         pea,
+         jub,
+         ss_dir,
+         par,
+         jef_ss,
+         cony_ss,
+         hijo_ss,
+         s_salud,
+         pam,
+         ic_segsoc) %>% 
+  arrange(folioviv, foliohog, numren)
 
-setequal(poblacion, segsoc)
+# Exportar prestaciones y pensiones, limpiar espacio de trabajo
+
+saveRDS(prestaciones, "data/prestaciones16.rds")
+saveRDS(pensiones, "data/pensiones16.rds")
+saveRDS(segsoc, "data/ic_segsoc16.rds")
+
+rm(list = ls()); gc()
+
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
