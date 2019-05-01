@@ -833,6 +833,44 @@ detach(hogares2)
 cev <- cev %>% 
   mutate(cv_hac = tot_resid / num_cuarto)
 
+# Indicadores de carencia
+cev <- cev %>% 
+  
+  # Indicadores de carencia
+  mutate(
+    
+    # Del material de piso
+    icv_pisos = case_when(
+      mat_pisos == 1 ~ 1,
+      mat_pisos > 1  ~ 0,
+      TRUE           ~ NA_real_
+    ),
+    
+    # Material de techos
+    icv_techos = case_when(
+      mat_techos <= 2 ~ 1,
+      mat_techos > 2  ~ 0,
+      TRUE            ~ NA_real_
+    ),
+    
+    # Material de muros
+    icv_muros = case_when(
+      mat_muros <= 5 ~ 1,
+      mat_muros > 5  ~ 0,
+      TRUE           ~ NA_real_
+    ),
+    
+    # Índice de hacinamiento de la vivienda
+    icv_hac = case_when(
+      cv_hac > 2.5  ~ 1,
+      cv_hac <= 2.5 ~ 0,
+      TRUE          ~ NA_real_
+    )
+  )
+
+
+
+
 
 setequal(cev, hogares2)
 
