@@ -807,8 +807,31 @@ cev <- hogares %>%
   left_join(vivienda, by = "folioviv") %>% 
   arrange(folioviv)
 
+# Material de construcción de la vivienda
 cev <- cev %>% 
-  mutate(mat_pisos = as.numeric(mat_pisos))
+  mutate_at(c("mat_pisos",
+              "mat_techos",
+              "tot_resid",
+              "num_cuarto"),
+            as.numeric) %>% 
+  mutate(mat_muros = as.numeric(mat_pared))
+
+attach(hogares2)
+hogares2$mat_pisos = car::recode(mat_pisos, "-1=NA")
+hogares2$mat_pisos <- ifelse(mat_pisos == "&", NA, mat_pisos)
+detach(hogares2)
+
+attach(hogares2)
+hogares2$mat_pisos <- as.numeric(mat_pisos)
+hogares2$mat_techos <- as.numeric(mat_techos)
+hogares2$tot_resid <- as.numeric(tot_resid)
+hogares2$num_cuarto <- as.numeric(num_cuarto)
+hogares2$mat_muros <- as.numeric(mat_pared)
+detach(hogares2)
+
+# Índice de hacinamiento
+cev <- cev %>% 
+  mutate(cv_hac = tot_resid / num_cuarto)
 
 
 setequal(cev, hogares2)
