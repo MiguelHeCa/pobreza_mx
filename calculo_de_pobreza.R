@@ -805,40 +805,22 @@ vivienda <- readRDS("raw/viviendas.rds")
 
 cev <- hogares %>% 
   left_join(vivienda, by = "folioviv") %>% 
-  arrange(folioviv)
+  arrange(folioviv) %>% 
 
-# Material de construcción de la vivienda
-cev <- cev %>% 
-  mutate_at(c("mat_pisos",
-              "mat_techos",
-              "tot_resid",
-              "num_cuarto"),
-            as.numeric) %>% 
-  mutate(mat_muros = as.numeric(mat_pared))
-
-attach(hogares2)
-hogares2$mat_pisos = car::recode(mat_pisos, "-1=NA")
-hogares2$mat_pisos <- ifelse(mat_pisos == "&", NA, mat_pisos)
-detach(hogares2)
-
-attach(hogares2)
-hogares2$mat_pisos <- as.numeric(mat_pisos)
-hogares2$mat_techos <- as.numeric(mat_techos)
-hogares2$tot_resid <- as.numeric(tot_resid)
-hogares2$num_cuarto <- as.numeric(num_cuarto)
-hogares2$mat_muros <- as.numeric(mat_pared)
-detach(hogares2)
-
-# Índice de hacinamiento
-cev <- cev %>% 
-  mutate(cv_hac = tot_resid / num_cuarto)
-
-# Indicadores de carencia
-cev <- cev %>% 
-  
-  # Indicadores de carencia
+  # Material de construcción de la vivienda
+  mutate_at(
+    c("mat_pisos",
+      "mat_techos",
+      "tot_resid",
+      "num_cuarto"),
+    as.numeric) %>% 
   mutate(
+    mat_muros = as.numeric(mat_pared),
     
+    # Índice de hacinamiento
+    cv_hac = tot_resid / num_cuarto,
+    
+    # Indicadores de carencia:
     # Del material de piso
     icv_pisos = case_when(
       mat_pisos == 1 ~ 1,
@@ -865,80 +847,59 @@ cev <- cev %>%
       cv_hac > 2.5  ~ 1,
       cv_hac <= 2.5 ~ 0,
       TRUE          ~ NA_real_
-    )
-  )
-
-# Indicador de carencia por calidad y espacios de la vivienda;
-
-cev <- cev %>% 
-  # Indicador de carencia por calidad y espacios de la vivienda
-  
-  # Se considera en situación de carencia a la población que:
-  
-  # 1. Presente carencia en cualquiera de los subindicadores de esta dimensión
-  
-  # No se considera en situación de carencia a la población que:
-  
-  # 1. Habite en una vivienda sin carencia en todos los subindicadores
-  # de esta dimensión
-  
-  mutate(
+    ),
+    
+    # Indicador de carencia por calidad y espacios de la vivienda
+    
+    # Se considera en situación de carencia a la población que:
+    # 1. Presente carencia en cualquiera de los subindicadores 
+    # de esta dimensión
+    
+    # No se considera en situación de carencia a la población que:
+    # 1. Habite en una vivienda sin carencia en todos los subindicadores
+    # de esta dimensión
+    
     ic_cv = case_when(
-      icv_pisos == 1 |
-        icv_techos == 1 |
-        icv_muros == 1 | icv_hac == 1 ~ 1,
-      icv_pisos == 0 &
-        icv_techos == 0 &
-        icv_muros == 0 & icv_hac == 0 ~ 0,
-      is.na(icv_pisos) == TRUE |
-        is.na(icv_muros) == TRUE |
-        is.na(icv_muros) == TRUE |
-        is.na(icv_hac) == TRUE  ~ NA_real_
-    )
-  )
-
-cev <- cev %>% 
-  # Indicador de carencia por calidad y espacios de la vivienda
-  
-  # Se considera en situación de carencia a la población que:
-  
-  # 1. Presente carencia en cualquiera de los subindicadores de esta dimensión
-  
-  # No se considera en situación de carencia a la población que:
-  
-  # 1. Habite en una vivienda sin carencia en todos los subindicadores
-  # de esta dimensión
-  
-  mutate(
-    ic_cv = case_when(
-      is.na(icv_pisos) |
+      is.na(icv_pisos)    |
         is.na(icv_techos) |
-        is.na(icv_muros) |
-        is.na(icv_hac)      ~ NA_real_,
-      icv_pisos == 1 |
+        is.na(icv_muros)  |
+        is.na(icv_hac)    ~ NA_real_,
+      icv_pisos == 1    |
         icv_techos == 1 |
-        icv_muros == 1 |
-        icv_hac == 1        ~ 1,
-      icv_pisos == 0 &
+        icv_muros == 1  |
+        icv_hac == 1      ~ 1,
+      icv_pisos == 0    &
         icv_techos == 0 &
-        icv_muros == 0 &
-        icv_hac == 0        ~ 0
+        icv_muros == 0  &
+        icv_hac == 0      ~ 0
     )
-  )
+  
+  ) %>% 
+  
+  # Depurar variables
+  
+  select(folioviv, foliohog, tot_resid, num_cuarto, icv_pisos:ic_cv) %>% 
+  arrange(folioviv, foliohog)
 
+# Exportar prestaciones y pensiones, limpiar espacio de trabajo
 
+saveRDS(cev, "data/ic_cev16.rds")
 
-
-
-setequal(cev, hogares2)
+rm(list = ls()); gc()
 
 # I.5 Acceso en los servicios básicos en la vivienda ----------------------
+
+
 
 
 # I.6 Acceso a la alimentación --------------------------------------------
 
 
+
+
 # I.7 Bienestar (ingresos) ------------------------------------------------
+
+
 
 
 # II. Pobreza =============================================================
