@@ -41,7 +41,7 @@ poblacion <- poblacion %>%
   
   # Quitar de la población a huéspedes y trabajadores domésticos
   filter(!((parentesco >= 400 & parentesco < 500) | 
-             parentesco >= 700 & parentesco < 800)) %>% 
+            parentesco >= 700 & parentesco < 800)) %>% 
   mutate(
     # Año de nacimiento
     # Se resta 2016 de la edad porque es el año en que se levantó la encuesta
@@ -806,6 +806,9 @@ vivienda <- readRDS("raw/viviendas.rds")
 cev <- hogares %>% 
   left_join(vivienda, by = "folioviv") %>% 
   arrange(folioviv)
+
+cev <- cev %>% 
+  mutate(mat_pisos = as.numeric(mat_pisos))
 
 
 setequal(cev, hogares2)
