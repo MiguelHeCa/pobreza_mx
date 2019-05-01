@@ -868,6 +868,64 @@ cev <- cev %>%
     )
   )
 
+# Indicador de carencia por calidad y espacios de la vivienda;
+
+cev <- cev %>% 
+  # Indicador de carencia por calidad y espacios de la vivienda
+  
+  # Se considera en situación de carencia a la población que:
+  
+  # 1. Presente carencia en cualquiera de los subindicadores de esta dimensión
+  
+  # No se considera en situación de carencia a la población que:
+  
+  # 1. Habite en una vivienda sin carencia en todos los subindicadores
+  # de esta dimensión
+  
+  mutate(
+    ic_cv = case_when(
+      icv_pisos == 1 |
+        icv_techos == 1 |
+        icv_muros == 1 | icv_hac == 1 ~ 1,
+      icv_pisos == 0 &
+        icv_techos == 0 &
+        icv_muros == 0 & icv_hac == 0 ~ 0,
+      is.na(icv_pisos) == TRUE |
+        is.na(icv_muros) == TRUE |
+        is.na(icv_muros) == TRUE |
+        is.na(icv_hac) == TRUE  ~ NA_real_
+    )
+  )
+
+cev <- cev %>% 
+  # Indicador de carencia por calidad y espacios de la vivienda
+  
+  # Se considera en situación de carencia a la población que:
+  
+  # 1. Presente carencia en cualquiera de los subindicadores de esta dimensión
+  
+  # No se considera en situación de carencia a la población que:
+  
+  # 1. Habite en una vivienda sin carencia en todos los subindicadores
+  # de esta dimensión
+  
+  mutate(
+    ic_cv = case_when(
+      is.na(icv_pisos) |
+        is.na(icv_techos) |
+        is.na(icv_muros) |
+        is.na(icv_hac)      ~ NA_real_,
+      icv_pisos == 1 |
+        icv_techos == 1 |
+        icv_muros == 1 |
+        icv_hac == 1        ~ 1,
+      icv_pisos == 0 &
+        icv_techos == 0 &
+        icv_muros == 0 &
+        icv_hac == 0        ~ 0
+    )
+  )
+
 
 
 
