@@ -18,7 +18,7 @@
 
 # Paquetes ----------------------------------------------------------------
 
-library(tidyverse)
+if (!require(tidyverse)) { install.packages("tidyverse") }
 
 # I. Indicadores de Privación Social ======================================
 
