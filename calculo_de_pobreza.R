@@ -891,24 +891,14 @@ rm(list = ls()); gc()
 
 hogares <- readRDS("raw/viviendas.rds")
 
-hogares1 <- readRDS("raw/viviendas.rds")
-
-sbv <- hogares1
-
-sbv <- sbv %>% 
+sbv <- hogares %>% 
   mutate(
     aguav = as.numeric(disp_agua),
     drenajev = as.numeric(drenaje),
     elecv = as.numeric(disp_elect),
-    combusv = as.numeric(combustibl)
-  )
-
-# Disponibilidad de agua
-sbv <- sbv %>% 
-  
-  # Disponibilidad de:
-  mutate(
+    combusv = as.numeric(combustibl),
     
+    # Disponibilidad de:
     # agua
     sb_agua = recode(
       aguav, `7` = 1, `6` = 2, `5` = 3, `4` = 4, `3` = 5, `2` = 6, `1` = 7
@@ -922,20 +912,14 @@ sbv <- sbv %>%
     # Electricidad
     sb_luz = recode(
       elecv, `5` = 1, `4` = 2, `3` = 2, `2` = 3, `1` = 4
-    )
-  )
-
-# Indicador de carencia de servicio de agua
-sbv <- sbv %>% 
-  
-  # Indicador de carencia de servicio de:
-  mutate(
+    ),
     
+    # Indicador de carencia de servicio de:
     # agua
     isb_agua = case_when(
-      sb_agua <= 5                               ~ 1,
-      !is.na(sb_agua) & (sb_agua > 5             |
-        sb_agua == 4 & ubica_geo == "200580016") ~ 0
+      sb_agua <= 5                                              ~ 1,
+      !is.na(sb_agua)                                           & 
+        (sb_agua > 5 | sb_agua == 4 & ubica_geo == "200580016") ~ 0
     ),
     
     # drenaje
@@ -946,19 +930,16 @@ sbv <- sbv %>%
     
     # electricidad
     isb_luz = case_when(
-     sb_luz == 1                 ~ 1,
-     sb_luz > 1 & !is.na(sb_luz) ~ 0
+      sb_luz == 1                 ~ 1,
+      sb_luz > 1 & !is.na(sb_luz) ~ 0
     ),
     
     # Indicador de combustible
     isb_combus = case_when(
       !is.na(combusv) & combusv <= 2 & estufa_chi == 2                 ~ 1,
       !is.na(combusv) & (combusv <= 2 & estufa_chi == 1 | combusv > 2) ~ 0
-    )
-  )
-
-sbv <- sbv %>% 
-  mutate(
+    ),
+    
     # Indicador de carencia por acceso a los servicios básicos en la vivienda
     
     # Se considera en situación de carencia a la población que:
@@ -983,12 +964,18 @@ sbv <- sbv %>%
         isb_luz == 0      &
         isb_combus == 0   ~ 0
     )
-  )
+  ) %>% 
+  
+  # Depurar variables
+  select(folioviv, isb_agua:ic_sbv) %>% 
+  arrange(folioviv)
 
+# Exportar
+saveRDS(sbv, "data/ic_sbv16.rds")
 
+rm(list = ls())
 
-setequal(hogares, sbv)
-
+gc()
 
 # I.6 Acceso a la alimentación --------------------------------------------
 
