@@ -889,7 +889,75 @@ rm(list = ls()); gc()
 
 # I.5 Acceso en los servicios básicos en la vivienda ----------------------
 
+hogares <- readRDS("raw/viviendas.rds")
 
+hogares1 <- readRDS("raw/viviendas.rds")
+
+sbv <- hogares1
+
+sbv <- sbv %>% 
+  mutate(
+    aguav = as.numeric(disp_agua),
+    drenajev = as.numeric(drenaje),
+    elecv = as.numeric(disp_elect),
+    combusv = as.numeric(combustibl)
+  )
+
+# Disponibilidad de agua
+sbv <- sbv %>% 
+  
+  # Disponibilidad de:
+  mutate(
+    
+    # agua
+    sb_agua = recode(
+      aguav, `7` = 1, `6` = 2, `5` = 3, `4` = 4, `3` = 5, `2` = 6, `1` = 7
+    ),
+    
+    # drenaje
+    sb_dren = recode(
+      drenajev, `5` = 1, `4` = 2, `3` = 3, `2` = 4, `1` = 5
+    ),
+    
+    # Electricidad
+    sb_luz = recode(
+      elecv, `5` = 1, `4` = 2, `3` = 2, `2` = 3, `1` = 4
+    )
+  )
+
+# Indicador de carencia de servicio de agua
+sbv <- sbv %>% 
+  
+  # Indicador de carencia de servicio de:
+  mutate(
+    
+    # agua
+    isb_agua = case_when(
+      sb_agua <= 5                              ~ 1,
+      !is.na(sb_agua) & (sb_agua > 5 |
+        sb_agua == 4 & ubica_geo == "200580016") ~ 0
+    ),
+    
+    # drenaje
+    isb_dren = case_when(
+      sb_dren <= 3                  ~ 1,
+      sb_dren > 3 & !is.na(sb_dren) ~ 0
+    ),
+    
+    # electricidad
+    isb_luz = case_when(
+     sb_luz == 1                 ~ 1,
+     sb_luz > 1 & !is.na(sb_luz) ~ 0
+    ),
+    
+    # Indicador de combustible
+    isb_combus = case_when(
+      !is.na(combusv) & combusv <= 2 & estufa_chi == 2 ~ 1,
+      !is.na(combusv) & (combusv <= 2 & estufa_chi == 1 | combusv > 2) ~ 0
+    )
+  )
+
+setequal(hogares, sbv)
 
 
 # I.6 Acceso a la alimentación --------------------------------------------
