@@ -933,8 +933,8 @@ sbv <- sbv %>%
     
     # agua
     isb_agua = case_when(
-      sb_agua <= 5                              ~ 1,
-      !is.na(sb_agua) & (sb_agua > 5 |
+      sb_agua <= 5                               ~ 1,
+      !is.na(sb_agua) & (sb_agua > 5             |
         sb_agua == 4 & ubica_geo == "200580016") ~ 0
     ),
     
@@ -952,10 +952,40 @@ sbv <- sbv %>%
     
     # Indicador de combustible
     isb_combus = case_when(
-      !is.na(combusv) & combusv <= 2 & estufa_chi == 2 ~ 1,
+      !is.na(combusv) & combusv <= 2 & estufa_chi == 2                 ~ 1,
       !is.na(combusv) & (combusv <= 2 & estufa_chi == 1 | combusv > 2) ~ 0
     )
   )
+
+sbv <- sbv %>% 
+  mutate(
+    # Indicador de carencia por acceso a los servicios básicos en la vivienda
+    
+    # Se considera en situación de carencia a la población que:
+    # 1. Presente carencia en cualquiera de los subindicadores de esta 
+    # dimensión
+    
+    # No se considera en situación de carencia a la población que:
+    # 1. Habite en una vivienda sin carencia en todos los subindicadores
+    # de esta dimensión
+    
+    ic_sbv = case_when(
+      is.na(isb_agua)     |
+        is.na(isb_dren)   |
+        is.na(isb_luz)    |
+        is.na(isb_combus) ~ NA_real_,
+      isb_agua == 1       |
+        isb_dren == 1     |
+        isb_luz == 1      |
+        isb_combus == 1   ~ 1,
+      isb_agua == 0       &
+        isb_dren == 0     &
+        isb_luz == 0      &
+        isb_combus == 0   ~ 0
+    )
+  )
+
+
 
 setequal(hogares, sbv)
 
