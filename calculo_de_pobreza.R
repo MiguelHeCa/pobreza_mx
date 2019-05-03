@@ -13,8 +13,8 @@
 # Concentrado:  concentradohogar.rds
 # Trabajos:     trabajos.rds
 # Viviendas:    viviendas.rds
-# No monetario: gastospersona.rds y gastoshogar.rds
-
+# No monetario: gastospersona.rds
+#               gastoshogar.rds
 
 # Paquetes ----------------------------------------------------------------
 
@@ -26,7 +26,7 @@ if (!require(tidyverse)) { install.packages("tidyverse") }
 
 poblacion <- readRDS("raw/poblacion.rds")
 
-poblacion <- poblacion %>% 
+rezedu <- poblacion %>% 
   
   # Nombres de variables en minúsculas
   rename_all(tolower) %>% 
@@ -118,7 +118,7 @@ poblacion <- poblacion %>%
   arrange(folioviv, foliohog, numren)
 
 # Exportando
-saveRDS(poblacion, "data/ic_rezedu16.rds")
+saveRDS(rezedu, "data/ic_rezedu16.rds")
 
 rm(list = ls()); gc()
 
