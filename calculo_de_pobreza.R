@@ -979,8 +979,150 @@ gc()
 
 # I.6 Acceso a la alimentación --------------------------------------------
 
+poblacion1 <- readRDS("raw/poblacion.rds")
+
+ali_pob <- poblacion1 %>% 
+  
+  # Nombres de variables en minúsculas
+  rename_all(tolower) %>% 
+  
+  # Transformar variables de interés a numéricas
+  mutate_at(c("nivelaprob",
+              "gradoaprob",
+              "antec_esc",
+              "hablaind",
+              "parentesco"),
+            as.numeric) %>% 
+  
+  # Quitar de la población a huéspedes y trabajadores domésticos
+  filter(!((parentesco >= 400 & parentesco < 500) | 
+             parentesco >= 700 & parentesco < 800))
+
+poblacion <- ali_pob
+
+ali_pob <- ali_pob %>% 
+  mutate(
+    
+    # Indicador de hogares con menores de 18 años
+    men = if_else(edad > 17, true = 0, false = 1)
+  )
+
+table(ali_pob$men, exclude = NULL)
+table(poblacion$men, exclude = NULL)
+
+suma_poblacion <- ali_pob %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(men = sum(men)) %>% 
+  ungroup() %>% 
+  mutate(id_men = if_else(men == 0, true = 0, false = 1)) %>% 
+  select(-men)
+
+table(suma_poblacion$men, exclude = NULL)
+table(suma_poblacion$id_men, exclude = NULL)
+table(poblacion2$id_men, exclude = NULL)
+
+setequal(poblacion2, suma_poblacion)
+
+setequal(ali_pob, poblacion)
 
 
+
+ali_hog <- readRDS("raw/hogares.rds")
+
+hogares <- ali_hog
+
+ali_hog <- ali_hog %>% 
+  mutate(
+    
+    #** Preguntas para hogares SIN población menor a 18 años. 
+    # Algún adulto:
+    
+    # tuvo una alimentación en muy poca variedad de accceso a 
+    # alimentos
+    ia_1ad = if_else(acc_alim4 == 1, true = 1, false = 0, missing = 0),
+    
+    # dejó de desayunar, comer o cenar
+    ia_2ad = if_else(acc_alim5 == 1, true = 1, false = 0, missing = 0),
+    
+    # comió menos de lo que debía comer
+    ia_3ad = if_else(acc_alim6 == 1, true = 1, false = 0, missing = 0),
+    
+    # se quedó sin comida
+    ia_4ad = if_else(acc_alim2 == 1, true = 1, false = 0, missing = 0),
+    
+    # sintió hambre pero no comió
+    ia_5ad = if_else(acc_alim7 == 1, true = 1, false = 0, missing = 0),
+    
+    # solo comió una vez la día o dejó de comer todo un día
+    ia_6ad = if_else(acc_alim8 == 1, true = 1, false = 0, missing = 0),
+    
+    #** Preguntas para hogares CON población menor a 18 años. 
+    # Alguien de 0 a 17 años:
+    
+    # tuvo una alimentación en muy poca variedad de accceso a 
+    # alimentos
+    ia_7men = if_else(acc_alim11 == 1, true = 1, false = 0, missing = 0),
+    
+    # comió menos de lo que debía
+    ia_8men = if_else(acc_alim12 == 1, true = 1, false = 0, missing = 0),
+    
+    # se le tuvo que disminuir la cantidad servida en las comidas
+    ia_9men = if_else(acc_alim13 == 1, true = 1, false = 0, missing = 0),
+    
+    # sintió hambre pero no comió
+    ia_10men = if_else(acc_alim14 == 1, true = 1, false = 0, missing = 0),
+    
+    # se acostó con hambre
+    ia_11men = if_else(acc_alim15 == 1, true = 1, false = 0, missing = 0),
+    
+    # comió una vez al día o dejó de comer todo un día
+    ia_12men = if_else(acc_alim16 == 1, true = 1, false = 0, missing = 0)
+  )
+
+
+table(ali_hog$acc_alim4, exclude = NULL)
+table(hogares$acc_alim4, exclude = NULL)
+table(ali_hog$ia_1ad, exclude = NULL)
+table(hogares$ia_1ad, exclude = NULL)
+table(ali_hog$ia_2ad, exclude = NULL)
+table(hogares$ia_2ad, exclude = NULL)
+table(ali_hog$ia_3ad, exclude = NULL)
+table(hogares$ia_3ad, exclude = NULL)
+table(ali_hog$ia_4ad, exclude = NULL)
+table(hogares$ia_4ad, exclude = NULL)
+table(ali_hog$ia_5ad, exclude = NULL)
+table(hogares$ia_5ad, exclude = NULL)
+table(ali_hog$ia_6ad, exclude = NULL)
+table(hogares$ia_6ad, exclude = NULL)
+table(ali_hog$ia_7men, exclude = NULL)
+table(hogares$ia_7men, exclude = NULL)
+table(ali_hog$ia_8men, exclude = NULL)
+table(hogares$ia_8men, exclude = NULL)
+table(ali_hog$ia_9men, exclude = NULL)
+table(hogares$ia_9men, exclude = NULL)
+table(ali_hog$ia_10men, exclude = NULL)
+table(hogares$ia_10men, exclude = NULL)
+table(ali_hog$ia_11men, exclude = NULL)
+table(hogares$ia_11men, exclude = NULL)
+table(ali_hog$ia_12men, exclude = NULL)
+table(hogares$ia_12men, exclude = NULL)
+
+setequal(hogares, ali_hog)
+
+
+# Construcción de la escala de inseguridad alimentaria
+ali <- ali_hog %>% 
+  left_join(suma_poblacion, by = c("folioviv", "foliohog")) %>% 
+  arrange(folioviv, foliohog) %>% 
+  
+  # Escala de hogares sin menores 18 años
+  tot_iaad = case_when(
+    
+  )
+
+setequal(ali, hogares)
+
+saveRDS(suma_poblacion, "data/menores16.rds")
 
 # I.7 Bienestar (ingresos) ------------------------------------------------
 
