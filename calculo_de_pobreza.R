@@ -1113,11 +1113,16 @@ setequal(hogares, ali_hog)
 # Construcción de la escala de inseguridad alimentaria
 ali <- ali_hog %>% 
   left_join(suma_poblacion, by = c("folioviv", "foliohog")) %>% 
-  arrange(folioviv, foliohog) %>% 
+  arrange(folioviv, foliohog)
+
+ali <- ali %>% 
   
-  # Escala de hogares sin menores 18 años
-  tot_iaad = case_when(
+  
+  mutate(
+    tot_iaad = case_when(
     
+    # Escala de hogares sin menores 18 años
+    )
   )
 
 setequal(ali, hogares)
