@@ -1119,11 +1119,23 @@ ali <- ali %>%
   
   
   mutate(
-    tot_iaad = case_when(
     
-    # Escala de hogares sin menores 18 años
+    # Escala de hogares SIN menores de 18 años
+    tot_iaad = if_else(
+      id_men == 0,
+      true = ia_1ad + ia_2ad + ia_3ad + ia_4ad + ia_5ad + ia_6ad,
+      false = NA_real_
+    ),
+    
+    # Escala de hogares CON menores de 18 años
+    tot_iamen = if_else(
+      id_men == 1,
+      true = ia_1ad + ia_2ad + ia_3ad + ia_4ad + ia_5ad + ia_6ad +
+             ia_7men + ia_8men + ia_9men + ia_10men + ia_11men + ia_12men,
+      false = NA_real_
     )
   )
+
 
 setequal(ali, hogares)
 
