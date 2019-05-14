@@ -1116,8 +1116,6 @@ ali <- ali_hog %>%
   arrange(folioviv, foliohog)
 
 ali <- ali %>% 
-  
-  
   mutate(
     
     # Escala de hogares SIN menores de 18 años
@@ -1136,11 +1134,68 @@ ali <- ali %>%
     )
   )
 
+setequal(ali, hogares)
+
+# Grado de inseguridad alimentaria
+
+ali <- ali %>% 
+  # Este subindicador genera cuatro clasificaciones de la siguiente forma:
+  # 0 Sin inseguridad alimentaria
+  # 1 Inseguridad alimentaria leve
+  # 2 Inseguridad alimentaria moderada
+  # 3 Inseguridad alimentaria severa
+  mutate(
+    ins_ali = case_when(
+    tot_iaad == 0 | tot_iamen == 0                                ~ 0,
+    tot_iaad >= 1 & tot_iaad < 3 | tot_iamen >= 1 & tot_iamen < 4 ~ 1,
+    tot_iaad >= 3 & tot_iaad < 5 | tot_iamen >= 4 & tot_iamen < 8 ~ 2,
+    tot_iaad >= 5 | tot_iamen >= 8 & !is.na(tot_iamen)            ~ 3,
+    TRUE                                                          ~ NA_real_
+    )
+  )
 
 setequal(ali, hogares)
 
-saveRDS(suma_poblacion, "data/menores16.rds")
 
+# Indicador de carencia por acceso a la alimentación
+ali <- ali %>% 
+  # Indicador de carencia por acceso a la alimentación;
+  
+  # Se considera a la población en hogares que:
+  # 1. Presenten inseguridad alimentaria moderada o severa.
+  
+  # No se considera a la población que:
+  # 1. No presente inseguridad alimentaria o presente un grado de inseguridad
+  # alimentaria leve.
+  mutate(ic_ali = if_else(ins_ali == 2 | ins_ali == 3, true = 1, false = 0))
+
+table(ali$ins_ali, exclude = NULL)
+table(ali$ic_ali, exclude = NULL)
+table(hogares$ins_ali, exclude = NULL)
+table(hogares$ic_ali, exclude = NULL)
+
+setequal(ali, hogares)
+
+# Depurar variables
+ali1 <- ali %>% 
+  select(folioviv:foliohog,
+         id_men,
+         ia_1ad:ia_12men,
+         tot_iaad:tot_iamen,
+         ins_ali:ic_ali) %>% 
+  arrange(folioviv, foliohog)
+
+
+
+
+
+
+setequal(ali1, hogares)
+
+
+
+
+saveRDS(suma_poblacion, "data/menores16.rds")
 # I.7 Bienestar (ingresos) ------------------------------------------------
 
 
