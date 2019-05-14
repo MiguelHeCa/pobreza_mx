@@ -979,9 +979,9 @@ gc()
 
 # I.6 Acceso a la alimentación --------------------------------------------
 
-poblacion1 <- readRDS("raw/poblacion.rds")
+ali_pob <- readRDS("raw/poblacion.rds")
 
-ali_pob <- poblacion1 %>% 
+ali_pob <- ali_pob %>% 
   
   # Nombres de variables en minúsculas
   rename_all(tolower) %>% 
@@ -996,20 +996,12 @@ ali_pob <- poblacion1 %>%
   
   # Quitar de la población a huéspedes y trabajadores domésticos
   filter(!((parentesco >= 400 & parentesco < 500) | 
-             parentesco >= 700 & parentesco < 800))
+             parentesco >= 700 & parentesco < 800)) %>% 
+  
+  # Indicador de hogares con menores de 18 años
+  mutate(men = if_else(edad > 17, true = 0, false = 1))
 
-poblacion <- ali_pob
-
-ali_pob <- ali_pob %>% 
-  mutate(
-    
-    # Indicador de hogares con menores de 18 años
-    men = if_else(edad > 17, true = 0, false = 1)
-  )
-
-table(ali_pob$men, exclude = NULL)
-table(poblacion$men, exclude = NULL)
-
+# Idenficar menores en hogar
 suma_poblacion <- ali_pob %>% 
   group_by(folioviv, foliohog) %>% 
   summarise(men = sum(men)) %>% 
@@ -1017,19 +1009,8 @@ suma_poblacion <- ali_pob %>%
   mutate(id_men = if_else(men == 0, true = 0, false = 1)) %>% 
   select(-men)
 
-table(suma_poblacion$men, exclude = NULL)
-table(suma_poblacion$id_men, exclude = NULL)
-table(poblacion2$id_men, exclude = NULL)
-
-setequal(poblacion2, suma_poblacion)
-
-setequal(ali_pob, poblacion)
-
-
-
+# Identificación de población en hogares
 ali_hog <- readRDS("raw/hogares.rds")
-
-hogares <- ali_hog
 
 ali_hog <- ali_hog %>% 
   mutate(
@@ -1079,37 +1060,6 @@ ali_hog <- ali_hog %>%
     ia_12men = if_else(acc_alim16 == 1, true = 1, false = 0, missing = 0)
   )
 
-
-table(ali_hog$acc_alim4, exclude = NULL)
-table(hogares$acc_alim4, exclude = NULL)
-table(ali_hog$ia_1ad, exclude = NULL)
-table(hogares$ia_1ad, exclude = NULL)
-table(ali_hog$ia_2ad, exclude = NULL)
-table(hogares$ia_2ad, exclude = NULL)
-table(ali_hog$ia_3ad, exclude = NULL)
-table(hogares$ia_3ad, exclude = NULL)
-table(ali_hog$ia_4ad, exclude = NULL)
-table(hogares$ia_4ad, exclude = NULL)
-table(ali_hog$ia_5ad, exclude = NULL)
-table(hogares$ia_5ad, exclude = NULL)
-table(ali_hog$ia_6ad, exclude = NULL)
-table(hogares$ia_6ad, exclude = NULL)
-table(ali_hog$ia_7men, exclude = NULL)
-table(hogares$ia_7men, exclude = NULL)
-table(ali_hog$ia_8men, exclude = NULL)
-table(hogares$ia_8men, exclude = NULL)
-table(ali_hog$ia_9men, exclude = NULL)
-table(hogares$ia_9men, exclude = NULL)
-table(ali_hog$ia_10men, exclude = NULL)
-table(hogares$ia_10men, exclude = NULL)
-table(ali_hog$ia_11men, exclude = NULL)
-table(hogares$ia_11men, exclude = NULL)
-table(ali_hog$ia_12men, exclude = NULL)
-table(hogares$ia_12men, exclude = NULL)
-
-setequal(hogares, ali_hog)
-
-
 # Construcción de la escala de inseguridad alimentaria
 ali <- ali_hog %>% 
   left_join(suma_poblacion, by = c("folioviv", "foliohog")) %>% 
@@ -1129,16 +1079,13 @@ ali <- ali %>%
     tot_iamen = if_else(
       id_men == 1,
       true = ia_1ad + ia_2ad + ia_3ad + ia_4ad + ia_5ad + ia_6ad +
-             ia_7men + ia_8men + ia_9men + ia_10men + ia_11men + ia_12men,
+        ia_7men + ia_8men + ia_9men + ia_10men + ia_11men + ia_12men,
       false = NA_real_
     )
-  )
-
-setequal(ali, hogares)
-
-# Grado de inseguridad alimentaria
-
-ali <- ali %>% 
+  ) %>% 
+  
+  # Grado de inseguridad alimentaria
+  
   # Este subindicador genera cuatro clasificaciones de la siguiente forma:
   # 0 Sin inseguridad alimentaria
   # 1 Inseguridad alimentaria leve
@@ -1146,38 +1093,25 @@ ali <- ali %>%
   # 3 Inseguridad alimentaria severa
   mutate(
     ins_ali = case_when(
-    tot_iaad == 0 | tot_iamen == 0                                ~ 0,
-    tot_iaad >= 1 & tot_iaad < 3 | tot_iamen >= 1 & tot_iamen < 4 ~ 1,
-    tot_iaad >= 3 & tot_iaad < 5 | tot_iamen >= 4 & tot_iamen < 8 ~ 2,
-    tot_iaad >= 5 | tot_iamen >= 8 & !is.na(tot_iamen)            ~ 3,
-    TRUE                                                          ~ NA_real_
-    )
-  )
-
-setequal(ali, hogares)
-
-
-# Indicador de carencia por acceso a la alimentación
-ali <- ali %>% 
-  # Indicador de carencia por acceso a la alimentación;
+      tot_iaad == 0 | tot_iamen == 0                                ~ 0,
+      tot_iaad >= 1 & tot_iaad < 3 | tot_iamen >= 1 & tot_iamen < 4 ~ 1,
+      tot_iaad >= 3 & tot_iaad < 5 | tot_iamen >= 4 & tot_iamen < 8 ~ 2,
+      tot_iaad >= 5 | tot_iamen >= 8 & !is.na(tot_iamen)            ~ 3,
+      TRUE                                                          ~ NA_real_
+    ),
+    
+    # Indicador de carencia por acceso a la alimentación;
+    
+    # Se considera a la población en hogares que:
+    # 1. Presenten inseguridad alimentaria moderada o severa.
+    
+    # No se considera a la población que:
+    # 1. No presente inseguridad alimentaria o presente un grado de inseguridad
+    # alimentaria leve.
+    ic_ali = if_else(ins_ali == 2 | ins_ali == 3, true = 1, false = 0)
+  ) %>% 
   
-  # Se considera a la población en hogares que:
-  # 1. Presenten inseguridad alimentaria moderada o severa.
-  
-  # No se considera a la población que:
-  # 1. No presente inseguridad alimentaria o presente un grado de inseguridad
-  # alimentaria leve.
-  mutate(ic_ali = if_else(ins_ali == 2 | ins_ali == 3, true = 1, false = 0))
-
-table(ali$ins_ali, exclude = NULL)
-table(ali$ic_ali, exclude = NULL)
-table(hogares$ins_ali, exclude = NULL)
-table(hogares$ic_ali, exclude = NULL)
-
-setequal(ali, hogares)
-
-# Depurar variables
-ali1 <- ali %>% 
+  # Depurar variables
   select(folioviv:foliohog,
          id_men,
          ia_1ad:ia_12men,
@@ -1185,17 +1119,14 @@ ali1 <- ali %>%
          ins_ali:ic_ali) %>% 
   arrange(folioviv, foliohog)
 
-
-
-
-
-
-setequal(ali1, hogares)
-
-
-
-
+# Exportar
 saveRDS(suma_poblacion, "data/menores16.rds")
+saveRDS(ali, "data/ic_ali16.rds")
+
+rm(list = ls())
+
+gc()
+
 # I.7 Bienestar (ingresos) ------------------------------------------------
 
 
