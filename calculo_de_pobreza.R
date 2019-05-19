@@ -40,8 +40,8 @@ rezedu <- poblacion %>%
             as.numeric) %>% 
   
   # Quitar de la población a huéspedes y trabajadores domésticos
-  filter(!((parentesco >= 400 & parentesco < 500) | 
-            parentesco >= 700 & parentesco < 800)) %>% 
+  filter(!(parentesco %in% c(400:499, 700:799))) %>% 
+  
   mutate(
     # Año de nacimiento
     # Se resta 2016 de la edad porque es el año en que se levantó la encuesta
@@ -57,27 +57,24 @@ rezedu <- poblacion %>%
     # Nivel educativo
     niv_ed = case_when(
       # Con primaria incompleta o menos
-      (nivelaprob < 2) | (nivelaprob == 2 & gradoaprob < 6)     ~ 0,
+      nivelaprob < 2 | (nivelaprob == 2 & gradoaprob < 6)            ~ 0,
       
       # Con primaria completa o secundaria incompleta
-      (nivelaprob == 2 & gradoaprob == 6) |
-        (nivelaprob == 3 & gradoaprob < 3) |
-        (nivelaprob == 5 | nivelaprob == 6) &
-        gradoaprob < 3 &
-        antec_esc == 1                                          ~ 1,
+      
+      (nivelaprob == 2 & gradoaprob == 6)                            |
+        (nivelaprob == 3 & gradoaprob < 3)                           |
+        (nivelaprob %in% c(5:6) & gradoaprob < 3 & antec_esc == 1)   ~ 1,
       
       # Secundaria completa o mayor nivel educativo
-      ((nivelaprob == 3 & gradoaprob == 3) |
-         (nivelaprob == 4) |
-         (nivelaprob == 5 & antec_esc == 1 & gradoaprob >= 3) |
-         (nivelaprob == 6 & antec_esc == 1 & gradoaprob >= 3) |
-         (nivelaprob == 5 & antec_esc >= 2) |
-         (nivelaprob == 6 & antec_esc >= 2) |
+      ((nivelaprob == 3 & gradoaprob == 3)                           |
+         (nivelaprob == 4)                                           |
+         (nivelaprob %in% c(5:6) & antec_esc == 1 & gradoaprob >= 3) |
+         (nivelaprob %in% c(5:6) & antec_esc >= 2)                   |
          (nivelaprob >= 7)
-      )                                                         ~ 2,
+      )                                                              ~ 2,
       
       # Todo lo demás
-      TRUE                                                      ~ NA_real_
+      TRUE                                                           ~ NA_real_
     ),
     
     #** Indicador de carencia por rezago educativo
@@ -94,13 +91,13 @@ rezedu <- poblacion %>%
     # 3. Tiene una edad de 16 años o más, su año de nacimiento aproximado es
     # 1982 en adelante, y no dispone de primaria secundaria completa.
     ic_rezedu = case_when(
-      edad >= 3 & edad <= 15 &  inas_esc == 1 &  niv_ed <= 1 |
-        edad >= 16 & anac_e >= 1982 & niv_ed <= 1 |
+      edad %in% c(3:15) & inas_esc == 1 & niv_ed <= 1          |
+        edad >= 16 & anac_e >= 1982 & niv_ed <= 1              |
         edad >= 16 & anac_e <= 1981 & niv_ed == 0              ~ 1,
-      edad >= 0  & edad <= 2 |
-        edad >= 3 & edad <= 15 & inas_esc == 0 |
-        edad >= 3 & edad <= 15 & inas_esc == 1 & niv_ed == 2 |
-        edad >= 16 & anac_e >= 1982 & niv_ed == 2 |
+      edad %in% c(0:2)                                         |
+        edad %in% c(3:15) & inas_esc == 0                      |
+        edad %in% c(3:15) & inas_esc == 1 & niv_ed == 2        |
+        edad >= 16 & anac_e >= 1982 & niv_ed == 2              |
         edad >= 16 & anac_e <= 1981 & niv_ed > 0               ~ 0
     ),
     
