@@ -110,13 +110,11 @@ rezedu <- poblacion %>%
   ) %>% 
   
   # Depurando variables
-  select(folioviv, foliohog, numren, edad, anac_e,
-         inas_esc, antec_esc, niv_ed, ic_rezedu, hli) %>% 
+  select(folioviv:numren, edad, anac_e:inas_esc, antec_esc, niv_ed:hli) %>% 
   arrange(folioviv, foliohog, numren)
 
 # Exportando
 saveRDS(rezedu, "data/ic_rezedu16.rds")
-
 rm(list = ls()); gc()
 
 # I.2 Acceso a servicios de salud -----------------------------------------
