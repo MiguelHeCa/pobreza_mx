@@ -122,19 +122,22 @@ rm(list = ls()); gc()
 poblacion <- readRDS("raw/poblacion.rds")
 trabajos <- readRDS("raw/trabajos.rds")
 
+# Selección de criterios para instituciones y prestaciones médicas
+ins_med1 <- c("inst_1", "inst_2", "inst_3", "inst_4")
+ins_med2 <- c("inst_2", "inst_3")
+prestaciones <- c("inst_1",  "inst_4",  "inst_6", "inscr_1", "inscr_2",
+                  "inscr_3", "inscr_4", "inscr_5", "inscr_7")
+
 # Tipo de trabajor: identifica la población subordinada e independiente
 ocupados <- trabajos %>% 
   mutate(tipo_trab = case_when(
     
     # Subordinados
     subor == 1                                                             ~ 1,
-    
     # Independientes que reciben un pago
     subor == 2 & (indep == 1 & tiene_suel == 1) | (indep == 2 & pago == 1) ~ 2,
-    
     # Independientes que no reciben un pago
     subor == 2 & (indep == 1 & tiene_suel == 2) | (indep == 2 & pago > 1)  ~ 3,
-    
     # Todo lo demás
     TRUE ~ NA_real_
   )) %>% 
@@ -156,151 +159,144 @@ ocupados <- trabajos %>%
     
     # Identificar de población trabajadora (que reporta al menos un empleo)
     trab = 1
-    ) %>% 
+  ) %>% 
   
   # Acomodar variables
   select(folioviv:numren, tipo_trab1, ocupa1, tipo_trab2, ocupa2, trab) %>% 
   arrange(folioviv, foliohog, numren)
 
 #** Unión de `ocupados` con `población` 
-asalud <- poblacion %>% 
+asal <- poblacion %>% 
   
   # Nombres de variables en minúsculas
   rename_all(tolower) %>% 
   
   # Transformar variables de interés a numéricas
-  mutate_at(c("parentesco", "act_pnea1", "act_pnea2"), as.numeric) %>% 
+  mutate_at(vars(parentesco, act_pnea1, act_pnea2), as.numeric) %>% 
   
   # Quitar de la población a huéspedes y trabajadores domésticos
-  filter(!((parentesco >= 400 & parentesco < 500) | 
-             parentesco >= 700 & parentesco < 800)) %>% 
+  filter(!(parentesco %in% c(400:499, 700:799))) %>% 
   
   arrange(folioviv, foliohog, numren) %>% 
   
   # Agregar variables de ocupados a población
-  left_join(ocupados, by = c("folioviv", "foliohog", "numren")) %>% 
+  left_join(ocupados2, by = c("folioviv", "foliohog", "numren")) %>% 
   
   #** Creación de variables para el indicador de carencia 
-
+  
   # Población económicamente activa
   mutate(
-  pea = case_when(
-    trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
-    (act_pnea1 == 1 | act_pnea2 == 1) &  edad >= 16 & !is.na(edad) ~ 2,
-    (act_pnea1 > 1 | act_pnea2 > 1) & edad >= 16 & !is.na(edad)    ~ 0,
-    TRUE                                                           ~ NA_real_
+    pea = case_when(
+      trab == 1 & edad >= 16 & !is.na(edad)                          ~ 1,
+      (act_pnea1 == 1 | act_pnea2 == 1) & edad >= 16 & !is.na(edad)  ~ 2,
+      (act_pnea1 >  1 | act_pnea2 >  1) & edad >= 16 & !is.na(edad)  ~ 0,
+      TRUE                                                           ~ NA_real_
     ),
-  
-  #** Tipo de trabajo
-  
-  # Ocupación principal
-  tipo_trab1 = case_when(
-    pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
-    TRUE                             ~ tipo_trab1
-    ),
-  
-  # Ocupación secundaria
-  tipo_trab2 = case_when(
-    pea == 0 | pea == 2 | is.na(pea) ~ NA_real_,
-    TRUE                             ~ tipo_trab2
-    ),
-  
-  #** Prestaciones básicas
-  
-  #** Prestaciones laborales (servicios médicos)
-  
-  # Ocupación principal
-  smlab1 = case_when(
-    ocupa1 == 1 & atemed == 1 &
-      (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)) &
-      !is.na(inscr_1) ~ 1,
-    ocupa1 == 1       ~ 0,
-    TRUE              ~ NA_real_
-    ),
-  
-  # Ocupación secundaria
-  smlab2 = case_when(
-    ocupa2 == 1 & atemed == 1 &
-      (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)) &
-      !is.na(inscr_1) ~ 1,
-    ocupa2 == 1       ~ 0,
-    TRUE              ~ NA_real_
-    ),
-  
-  # Contratación voluntaria: servicios médicos
-  smcv = case_when(
-    edad >= 12 & edad <= 97 & atemed == 1 &
-      (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)) &
-      !is.na(inscr_6)       ~ 1,
-    edad >= 12 & edad <= 97 ~ 0,
-    TRUE                    ~ NA_real_
-    ),
-  
-  # Acceso directo a servicios de salud
-  sa_dir = case_when(
+    
+    #** Tipo de trabajo
+    
     # Ocupación principal
-    tipo_trab1 == 1 & smlab1 == 1 |
-      tipo_trab1 > 1 & (smlab1 == 1 | smcv == 1) |
-      # Ocupación secundaria
-      tipo_trab2 == 1 & smlab2 == 1 |
-      tipo_trab2 > 1 & (smlab2 == 1 | smcv == 1) ~ 1,
-    TRUE ~ NA_real_
+    tipo_trab1 = case_when(
+      pea %in% c(0, 2) | is.na(pea) ~ NA_real_,
+      TRUE                          ~ tipo_trab1
     ),
-  
-  # Núcleos familiares
-  par = case_when(
-    parentesco >= 100 & parentesco < 200 ~ 1,
-    parentesco >= 200 & parentesco < 300 ~ 2,
-    parentesco >= 300 & parentesco < 400 ~ 3,
-    parentesco == 601                    ~ 4,
-    parentesco == 615                    ~ 5,
-    TRUE                                 ~ 6
+    
+    # Ocupación secundaria
+    tipo_trab2 = case_when(
+      pea %in% c(0, 2) | is.na(pea) ~ NA_real_,
+      TRUE                          ~ tipo_trab2
     ),
-  
-  # Información relativa a la asistencia escolar
-  inas_esc = case_when(
-    asis_esc == 1 ~ 0,
-    asis_esc == 2 ~ 1
+    
+    #** Prestaciones básicas
+    
+    #** Prestaciones laborales (servicios médicos)
+    
+    # Ocupación principal
+    smlab1 = case_when(
+      ocupa1 == 1 & atemed == 1 & 
+        rowSums(!is.na(select(., ins_med1))) > 0 &
+        !is.na(inscr_1) ~ 1,
+      ocupa1 == 1       ~ 0,
+      TRUE              ~ NA_real_
     ),
-  
-  #** Identificar los principales parentescos respecto a la jefatura del hogar
-  
-  # # Jefatura del hogar
-  jef = case_when(
-    par == 1 & sa_dir == 1                                &
-      (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
-      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
-      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
-      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
-    par == 1 & sa_dir == 1                                ~ 1,
-    TRUE                                                  ~ 0
+    
+    # Ocupación secundaria
+    smlab2 = case_when(
+      ocupa2 == 1 & atemed == 1 & 
+        rowSums(!is.na(select(., ins_med1))) > 0 &
+        !is.na(inscr_1) ~ 1,
+      ocupa2 == 1       ~ 0,
+      TRUE              ~ NA_real_
     ),
-
-  # Cónyuge
-  cony = case_when(
-    par == 2 & sa_dir == 1                                &
-      (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
-      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
-      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
-      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
-    par == 2 & sa_dir == 1                                ~ 1,
-    TRUE                                                  ~ 0
+    
+    # Contratación voluntaria: servicios médicos
+    smcv = case_when(
+      edad %in% 12:97 & atemed == 1 &
+        rowSums(!is.na(select(., ins_med1))) > 0 &
+        !is.na(inscr_6)       ~ 1,
+      edad %in% 12:97         ~ 0,
+      TRUE                    ~ NA_real_
     ),
-
-  # Descendientes
-  hijo = case_when(
-    par == 3 & sa_dir == 1                                &
-      (!is.na(inst_2) | !is.na(inst_3)) & !is.na(inscr_6) &
-      is.na(inst_1)  & is.na(inst_4)  & is.na(inst_6)     &
-      is.na(inscr_1) & is.na(inscr_2) & is.na(inscr_3)    &
-      is.na(inscr_4) & is.na(inscr_5) & is.na(inscr_7)    ~ NA_real_,
-    par == 3 & sa_dir == 1                                ~ 1,
-    TRUE                                                  ~ 0
+    
+    # Acceso directo a servicios de salud
+    sa_dir = case_when(
+      # Ocupación principal
+      tipo_trab1 == 1 & smlab1 == 1 |
+        tipo_trab1 > 1 & (smlab1 == 1 | smcv == 1) |
+        # Ocupación secundaria
+        tipo_trab2 == 1 & smlab2 == 1 |
+        tipo_trab2 > 1 & (smlab2 == 1 | smcv == 1) ~ 1,
+      TRUE ~ NA_real_
+    ),
+    
+    # Núcleos familiares
+    par = case_when(
+      parentesco %in% 100:199 ~ 1,
+      parentesco %in% 200:299 ~ 2,
+      parentesco %in% 300:399 ~ 3,
+      parentesco == 601       ~ 4,
+      parentesco == 615       ~ 5,
+      TRUE                    ~ 6
+    ),
+    
+    # Información relativa a la asistencia escolar
+    inas_esc = case_when(
+      asis_esc == 1 ~ 0,
+      asis_esc == 2 ~ 1
+    ),
+    
+    #** Identificar los principales parentescos respecto a la jefatura del hogar
+    
+    # # Jefatura del hogar
+    jef = case_when(
+      par == 1 & sa_dir == 1 & !is.na(inscr_6)       &
+        rowSums(!is.na(select(., ins_med2))) > 0     &
+        rowSums(is.na(select(., prestaciones))) == 9 ~ NA_real_,
+      par == 1 & sa_dir == 1                         ~ 1,
+      TRUE                                           ~ 0
+    ),
+    
+    # Cónyuge
+    cony = case_when(
+      par == 2 & sa_dir == 1 & !is.na(inscr_6)       &
+        rowSums(!is.na(select(., ins_med2))) > 0     &
+        rowSums(is.na(select(., prestaciones))) == 9 ~ NA_real_,
+      par == 2 & sa_dir == 1                         ~ 1,
+      TRUE                                           ~ 0
+    ),
+    
+    # Descendientes
+    hijo = case_when(
+      par == 3 & sa_dir == 1 & !is.na(inscr_6)       &
+        rowSums(!is.na(select(., ins_med2))) > 0     &
+        rowSums(is.na(select(., prestaciones))) == 9 ~ NA_real_,
+      par == 3 & sa_dir == 1                         ~ 1,
+      TRUE                                           ~ 0
     )
   )
 
 #** Crear suma de las indicadoras de parentesco
-suma_poblacion <- asalud %>% 
+suma_poblacion <- asal %>% 
   group_by(folioviv, foliohog) %>% 
   summarise(jef_1 = sum(jef),
             cony_1 = sum(cony),
@@ -308,7 +304,7 @@ suma_poblacion <- asalud %>%
   ungroup()
 
 #** Unir la suma a los datos de población
-asalud <- asalud %>% 
+asalud <- asal %>% 
   left_join(suma_poblacion, by = c("folioviv", "foliohog")) %>% 
   
   # Acceso directo a los servicios de salud de ...
@@ -334,13 +330,9 @@ asalud <- asalud %>%
     # hogar, muerte del asegurado o por contratación propia
     s_salud = case_when(
       atemed == 1 &
-        (
-          !is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | !is.na(inst_4)
-          ) &
-        (
-          !is.na(inscr_3) | !is.na(inscr_4) | !is.na(inscr_6) | !is.na(inscr_7)
-          )                           ~ 1,
-      !is.na(segpop) & !is.na(atemed) ~ 0,
+        rowSums(!is.na(select(., inst_1, inst_2, inst_3, inst_4))) > 0 & 
+        rowSums(!is.na(select(., inscr_3, inscr_4, inscr_6, inscr_7))) > 0 ~ 1,
+      rowSums(!is.na(select(., segpop, atemed))) > 0                       ~ 0,
       TRUE ~ NA_real_
     ),
     
@@ -360,8 +352,7 @@ asalud <- asalud %>%
         # Parentesco directo: descendientes
         par == 3 & 
         (edad < 16 & (jef_sa == 1 | cony_sa == 1) |
-        (edad >= 16 & edad <= 25) &
-        inas_esc == 0 & (jef_sa == 1 | cony_sa == 1)) |
+           (edad %in% 16:25) & inas_esc == 0 & (jef_sa == 1 | cony_sa == 1)) |
         
         # Parentesco directo: ascendentes
         pea == 0 & (par == 4 & jef_sa == 1 | par == 5 & cony_sa == 1) |
@@ -371,9 +362,8 @@ asalud <- asalud %>%
         
         # Acceso reportado
         segpop == 1 |
-        segpop == 2 & atemed == 1 &
-        (!is.na(inst_1) | !is.na(inst_2) | !is.na(inst_3) | 
-            !is.na(inst_4) | !is.na(inst_5) | !is.na(inst_6)) |
+        segpop == 2 & atemed == 1 & 
+        rowSums(!is.na(select(., inst_1:inst_6))) > 0 |
         segvol_2 == "2" ~ 0,
       
       # Se considera en esta situación a la población que:
@@ -386,14 +376,14 @@ asalud <- asalud %>%
     
     # Población con al menos alguna discapacidad, sea física o mental
     discap = case_when(
-      disc1 >= 1 & disc1 <= 7 |
-        disc2 >= 2 & disc2 <= 7 |
-        disc3 >= 3 & disc3 <= 7 |
-        disc4 >= 4 & disc4 <= 7 |
-        disc5 >= 5 & disc5 <= 7 |
-        disc6 >= 6 & disc6 <= 7 |
-        disc7 == 7                             ~ 1,
-      disc1 == 8 | disc1 == "&" | is.na(disc1) ~ 0
+      disc1 %in% 1:7   |
+        disc2 %in% 2:7 |
+        disc3 %in% 3:7 |
+        disc4 %in% 4:7 |
+        disc5 %in% 5:7 |
+        disc6 %in% 6:7 |
+        disc7 == 7              ~ 1,
+      disc1 == 8 | disc1 == "&" ~ 0
     )
   ) %>% 
   
