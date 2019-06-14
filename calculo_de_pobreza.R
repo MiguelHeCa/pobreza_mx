@@ -18,7 +18,7 @@
 
 # Paquetes ----------------------------------------------------------------
 
-if (!require(tidyverse)) { install.packages("tidyverse") }
+library(tidyverse)
 
 # I. Indicadores de Privación Social ======================================
 
@@ -1114,8 +1114,24 @@ gc()
 
 # I.7 Bienestar (ingresos) ------------------------------------------------
 
+# Para la construcción del ingreso corriente del hogar es necesario utilizar
+# información sobre la condición de ocupación y los ingresos de los individuos.
+# Se utiliza la información contenida en la base "trabajos" para identificar
+# a la población ocupada que declara tener como prestación laboral aguinaldo,
+# ya sea por su trabajo principal o secundario, a fin de incorporar
+# los ingresos por este concepto en la medición.
 
+# Creación del ingreso monetario deflactado a pesos de agosto del 2016.
 
+# Ingresos
+
+aguinaldo <- readRDS("raw/trabajos.rds") %>% 
+  select(folioviv:numren, id_trabajo, pres_8)
+
+aguinaldo2 <- aguinaldo %>% 
+  gather(variable, valor, -(folioviv:id_trabajo)) %>% 
+  unite(temporal, variable, id_trabajo, sep = "") %>% 
+  spread(temporal, valor)
 
 # II. Pobreza =============================================================
 
