@@ -16,6 +16,11 @@
 # No monetario: gastospersona.rds
 #               gastoshogar.rds
 
+# Preparación de carpetas -------------------------------------------------
+
+# Crea carpeta de destino en caso de que no se encuentre en folder principal
+if (!dir.exists("./data")) {dir.create("./data")}
+
 # Paquetes ----------------------------------------------------------------
 
 library(tidyverse)
