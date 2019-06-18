@@ -4,7 +4,7 @@
 # MCS-ENIGH pueden ser obtenidas en la página de Internet del INEGI,
 # www.inegi.org.mx. Originalmente todas fueron descargadas en formato DBF, 
 # pero fueron convertidas a RDS en el script `conversion_dbf.R`. Los archivos
-# originales se encuentran en `raw/` y los generados en `data/`
+# originales se encuentran en `original/` y los generados en `data/`
 
 # Se utilizan las siguientes bases:
 # Hogares:      hogares.rds
@@ -29,7 +29,7 @@ library(tidyverse)
 
 # I.1 Rezago educativo ----------------------------------------------------
 
-poblacion <- readRDS("raw/poblacion.rds")
+poblacion <- readRDS("original/poblacion.rds")
 
 rezedu <- poblacion %>% 
   
@@ -124,8 +124,8 @@ rm(list = ls()); gc()
 
 # I.2 Acceso a servicios de salud -----------------------------------------
 
-poblacion <- readRDS("raw/poblacion.rds")
-trabajos <- readRDS("raw/trabajos.rds")
+poblacion <- readRDS("original/poblacion.rds")
+trabajos <- readRDS("original/trabajos.rds")
 
 # Selección de criterios para instituciones y prestaciones médicas
 ins_med1 <- c("inst_1", "inst_2", "inst_3", "inst_4")
@@ -404,7 +404,7 @@ rm(list = ls()); gc()
 
 # I.3 Acceso a la seguridad social ----------------------------------------
 
-trabajos <- readRDS("raw/trabajos.rds")
+trabajos <- readRDS("original/trabajos.rds")
 
 prestaciones <- trabajos %>% 
   mutate(
@@ -468,7 +468,7 @@ prestaciones <- trabajos %>%
 
 # Ingresos por jubilaciones o pensiones
 
-ingresos <- readRDS("raw/ingresos.rds")
+ingresos <- readRDS("original/ingresos.rds")
 
 pensiones <- ingresos %>% 
   rename_all(tolower) %>% 
@@ -499,7 +499,7 @@ pensiones <- ingresos %>%
 
 # Construcción del indicador
 
-poblacion <- readRDS("raw/poblacion.rds")
+poblacion <- readRDS("original/poblacion.rds")
 
 segsoc <- poblacion %>% 
   
@@ -789,9 +789,9 @@ rm(list = ls()); gc()
 
 # I.4 Calidad y espacios en la vivienda -----------------------------------
 
-hogares <- readRDS("raw/hogares.rds")
+hogares <- readRDS("original/hogares.rds")
 
-vivienda <- readRDS("raw/viviendas.rds")
+vivienda <- readRDS("original/viviendas.rds")
 
 cev <- hogares %>% 
   left_join(vivienda, by = "folioviv") %>% 
@@ -879,7 +879,7 @@ rm(list = ls()); gc()
 
 # I.5 Acceso en los servicios básicos en la vivienda ----------------------
 
-hogares <- readRDS("raw/viviendas.rds")
+hogares <- readRDS("original/viviendas.rds")
 
 sbv <- hogares %>% 
   mutate(
@@ -969,7 +969,7 @@ gc()
 
 # I.6 Acceso a la alimentación --------------------------------------------
 
-ali_pob <- readRDS("raw/poblacion.rds")
+ali_pob <- readRDS("original/poblacion.rds")
 
 ali_pob <- ali_pob %>% 
   
@@ -1000,7 +1000,7 @@ suma_poblacion <- ali_pob %>%
   select(-men)
 
 # Identificación de población en hogares
-ali_hog <- readRDS("raw/hogares.rds")
+ali_hog <- readRDS("original/hogares.rds")
 
 ali_hog <- ali_hog %>% 
   mutate(
@@ -1130,13 +1130,44 @@ gc()
 
 # Ingresos
 
-aguinaldo <- readRDS("raw/trabajos.rds") %>% 
-  select(folioviv:numren, id_trabajo, pres_8)
+aguinaldo_original <- readRDS("original/trabajos.rds")
+ingresos_original <- readRDS("original/ingresos.rds")
 
-aguinaldo2 <- aguinaldo %>% 
+aguinaldo <- aguinaldo_original %>% 
+  select(folioviv:numren, id_trabajo, pres_8) %>% 
   gather(variable, valor, -(folioviv:id_trabajo)) %>% 
   unite(temporal, variable, id_trabajo, sep = "") %>% 
-  spread(temporal, valor)
+  spread(temporal, valor) %>% 
+  mutate(
+    
+  # Población con al menos un empleo  
+    trab = 1,
+  # Aguinaldo de trabajo principal
+    aguinaldo1 = case_when(pres_81 == "08" ~ 1, TRUE ~ 0),
+  # Aguinaldo de trabajo segundario
+    aguinaldo2 = case_when(pres_82 == "08" ~ 1, TRUE ~ 0)
+  ) %>% 
+  select(folioviv:numren, aguinaldo1, aguinaldo2, trab) %>% 
+  arrange(folioviv, foliohog, numren)
+
+ingresos <- ingresos_original %>% 
+  rename_all(tolower) %>% 
+  arrange(folioviv, foliohog, numren) %>% 
+  full_join(aguinaldo, by = c("folioviv", "foliohog", "numren"))  %>% 
+  filter(
+    !(clave == "P009" & aguinaldo1 != 1 & !is.na(clave)),
+    !(clave == "P016" & aguinaldo2 != 1 & !is.na(clave))
+    )
+
+# Una vez realizado lo anterior, se deflacta el ingreso recibido por los
+# hogares a precios de agosto de 2016. Para ello se utilizan las variables
+# de los meses, las cuales toman los valores 2 a 10 e indican el mes en
+# que se recibió el ingreso respectivo.
+
+# Original
+
+saveRDS(aguinaldo, "data/aguinaldo.rds")
+### Código original
 
 # II. Pobreza =============================================================
 
