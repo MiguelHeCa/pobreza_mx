@@ -1130,16 +1130,16 @@ gc()
 
 # Ingresos
 
-aguinaldo_original <- readRDS("original/trabajos.rds")
+trabajos_original <- readRDS("original/trabajos.rds")
 ingresos_original <- readRDS("original/ingresos.rds")
 
-aguinaldo <- aguinaldo_original %>% 
+aguinaldo_ <- trabajos_original %>% 
   select(folioviv:numren, id_trabajo, pres_8) %>% 
   gather(variable, valor, -(folioviv:id_trabajo)) %>% 
   unite(temporal, variable, id_trabajo, sep = "") %>% 
   spread(temporal, valor) %>% 
   mutate(
-    
+
   # Población con al menos un empleo  
     trab = 1,
   # Aguinaldo de trabajo principal
@@ -1150,24 +1150,93 @@ aguinaldo <- aguinaldo_original %>%
   select(folioviv:numren, aguinaldo1, aguinaldo2, trab) %>% 
   arrange(folioviv, foliohog, numren)
 
-ingresos <- ingresos_original %>% 
+ingresos_ <- ingresos_original %>% 
   rename_all(tolower) %>% 
-  arrange(folioviv, foliohog, numren) %>% 
-  full_join(aguinaldo, by = c("folioviv", "foliohog", "numren"))  %>% 
+  arrange(folioviv, foliohog, numren, clave) %>% 
+  full_join(aguinaldo_, by = c("folioviv", "foliohog", "numren"))  %>% 
   filter(
     !(clave == "P009" & aguinaldo1 != 1 & !is.na(clave)),
     !(clave == "P016" & aguinaldo2 != 1 & !is.na(clave))
     )
 
-# Una vez realizado lo anterior, se deflacta el ingreso recibido por los
-# hogares a precios de agosto de 2016. Para ello se utilizan las variables
-# de los meses, las cuales toman los valores 2 a 10 e indican el mes en
-# que se recibió el ingreso respectivo.
+saveRDS(aguinaldo_, "data/aguinaldo.rds")
+rm(list = setdiff(ls(), "ingresos_"))
 
-# Original
+# Ahora se deflacta el ingreso recibido por los hogares a precios de agosto de
+# 2016. Para ello se utilizan las variables de los meses, las cuales toman los
+# valores 2 a 10 e indican el mes en que se recibió el ingreso respectivo.
+
+# Definición de los deflactores 2016
+deflactores <- unlist(list(
+  dic15	=	0.9915096155, ene16	=	0.9952905552, feb16	=	0.9996486737,
+  mar16	=	1.0011208981, abr16	=	0.9979505968, may16	=	0.9935004643,
+  jun16	=	0.9945962676, jul16	=	0.9971893899, ago16	=	1.0000000000,
+  sep16	=	1.0061063849, oct16	=	1.0122127699, nov16	=	1.0201259756,
+  dic16	=	1.0248270555))
+
+ingresos_ <- ingresos_ %>% 
+  mutate_at(vars(mes_1:mes_6), as.numeric) %>% 
+  mutate(
+    ing_6 = case_when(
+      mes_6 == 2 ~ ing_6 / deflactores["feb16"],
+      mes_6 == 3 ~ ing_6 / deflactores["mar16"],
+      mes_6 == 4 ~ ing_6 / deflactores["abr16"],
+      mes_6 == 5 ~ ing_6 / deflactores["may16"],
+      mes_6 == 6 ~ ing_6 / deflactores["jun16"],
+      TRUE       ~ ing_6
+    ),
+    ing_5 = case_when(
+      mes_5 == 3 ~ ing_5 / deflactores["mar16"],
+      mes_5 == 4 ~ ing_5 / deflactores["abr16"],
+      mes_5 == 5 ~ ing_5 / deflactores["may16"],
+      mes_5 == 6 ~ ing_5 / deflactores["jun16"],
+      mes_5 == 7 ~ ing_5 / deflactores["jul16"],
+      TRUE       ~ ing_5
+    ),
+    ing_4 = case_when(
+      mes_4 == 4 ~ ing_4 / deflactores["abr16"],
+      mes_4 == 5 ~ ing_4 / deflactores["may16"],
+      mes_4 == 6 ~ ing_4 / deflactores["jun16"],
+      mes_4 == 7 ~ ing_4 / deflactores["jul16"],
+      mes_4 == 8 ~ ing_4 / deflactores["ago16"],
+      TRUE       ~ ing_4
+    ),
+    ing_3 = case_when(
+      mes_3 == 5 ~ ing_3 / deflactores["may16"],
+      mes_3 == 6 ~ ing_3 / deflactores["jun16"],
+      mes_3 == 7 ~ ing_3 / deflactores["jul16"],
+      mes_3 == 8 ~ ing_3 / deflactores["ago16"],
+      mes_3 == 9 ~ ing_3 / deflactores["sep16"],
+      TRUE       ~ ing_3
+    ),
+    ing_2 = case_when(
+      mes_2 == 6  ~ ing_2 / deflactores["jun16"],
+      mes_2 == 7  ~ ing_2 / deflactores["jul16"],
+      mes_2 == 8  ~ ing_2 / deflactores["ago16"],
+      mes_2 == 9  ~ ing_2 / deflactores["sep16"],
+      mes_2 == 10 ~ ing_2 / deflactores["oct16"],
+      TRUE        ~ ing_2
+    ),
+    ing_1 = case_when(
+      mes_1 == 7  ~ ing_1 / deflactores["jul16"],
+      mes_1 == 8  ~ ing_1 / deflactores["ago16"],
+      mes_1 == 9  ~ ing_1 / deflactores["sep16"],
+      mes_1 == 10 ~ ing_1 / deflactores["oct16"],
+      mes_1 == 11 ~ ing_1 / deflactores["nov16"],
+      TRUE        ~ ing_1
+    )
+  )
+
+INGRESOS <- ingresos %>% 
+  mutate_at(vars(mes_1:mes_6), as.numeric) %>% 
+  arrange(folioviv, foliohog, numren, clave)
+
+setequal(ingresos_, INGRESOS)
+
 
 saveRDS(aguinaldo, "data/aguinaldo.rds")
-### Código original
+
+
 
 # II. Pobreza =============================================================
 

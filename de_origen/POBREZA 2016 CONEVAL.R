@@ -1673,7 +1673,7 @@ aguinaldo = trabajos2[, c("folioviv",
                           "aguinaldo2" ,
                           "trab")]
 aguinaldo <-
-  orderBy(~ +folioviv + foliohog + numren, data = trabajos2)
+  orderBy(~ +folioviv + foliohog + numren, data = aguinaldo)
 write.dbf(aguinaldo, 'Bases/aguinaldo.dbf')
 write.csv(aguinaldo, 'Bases/aguinaldo.csv', row.names = FALSE)
 detach(trabajos2)
