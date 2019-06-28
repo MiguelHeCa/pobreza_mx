@@ -1159,8 +1159,8 @@ ingresos_ <- ingresos_original %>%
     !(clave == "P016" & aguinaldo2 != 1 & !is.na(clave))
     )
 
-saveRDS(aguinaldo_, "data/aguinaldo.rds")
-rm(list = setdiff(ls(), "ingresos_"))
+#saveRDS(aguinaldo_, "data/aguinaldo.rds")
+#rm(list = setdiff(ls(), "ingresos_"))
 
 # Ahora se deflacta el ingreso recibido por los hogares a precios de agosto de
 # 2016. Para ello se utilizan las variables de los meses, las cuales toman los
@@ -1223,13 +1223,32 @@ ingresos_ <- ingresos_ %>%
       mes_1 == 9  ~ ing_1 / deflactores["sep16"],
       mes_1 == 10 ~ ing_1 / deflactores["oct16"],
       mes_1 == 11 ~ ing_1 / deflactores["nov16"],
+      
+      # Se deflactan las claves P008 y P015 (Reparto de utilidades) y 
+      # P009 y P016 (aguinaldo) con los deflactores de mayo a agosto 2016 
+      # y de diciembre de 2015 a agosto 2016, respectivamente, y se obtiene 
+      # el promedio mensual.
+      clave %in% c("P008", "P015") ~ ing_1 / deflactores["may16"] / 12,
+      clave %in% c("P009", "P016") ~ ing_1 / deflactores["dic15"] / 12,
       TRUE        ~ ing_1
     )
   )
 
+# Una vez realizada la deflactación, se procede a obtener el ingreso
+# mensual promedio en los últimos seis meses, para cada persona y
+# clave de ingreso.
+ingresos_ <- ingresos_ %>%
+  mutate(ing_mens = rowMeans(select(., ing_1:ing_6), na.rm = TRUE))
+
+
+#Para obtener el ingreso corriente monetario, se seleccionan las claves de ingreso correspondientes
+ingresos_ %>% 
+
+
 INGRESOS <- ingresos %>% 
   mutate_at(vars(mes_1:mes_6), as.numeric) %>% 
   arrange(folioviv, foliohog, numren, clave)
+
 
 setequal(ingresos_, INGRESOS)
 
