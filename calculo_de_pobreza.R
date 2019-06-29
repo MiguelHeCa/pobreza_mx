@@ -1167,69 +1167,69 @@ ingresos_ <- ingresos_original %>%
 # valores 2 a 10 e indican el mes en que se recibió el ingreso respectivo.
 
 # Definición de los deflactores 2016
-deflactores <- unlist(list(
+deflactores <- list(
   dic15	=	0.9915096155, ene16	=	0.9952905552, feb16	=	0.9996486737,
   mar16	=	1.0011208981, abr16	=	0.9979505968, may16	=	0.9935004643,
   jun16	=	0.9945962676, jul16	=	0.9971893899, ago16	=	1.0000000000,
   sep16	=	1.0061063849, oct16	=	1.0122127699, nov16	=	1.0201259756,
-  dic16	=	1.0248270555))
+  dic16	=	1.0248270555)
 
 ingresos_ <- ingresos_ %>% 
   mutate_at(vars(mes_1:mes_6), as.numeric) %>% 
   mutate(
     ing_6 = case_when(
-      mes_6 == 2 ~ ing_6 / deflactores["feb16"],
-      mes_6 == 3 ~ ing_6 / deflactores["mar16"],
-      mes_6 == 4 ~ ing_6 / deflactores["abr16"],
-      mes_6 == 5 ~ ing_6 / deflactores["may16"],
-      mes_6 == 6 ~ ing_6 / deflactores["jun16"],
+      mes_6 == 2 ~ ing_6 / deflactores$feb16,
+      mes_6 == 3 ~ ing_6 / deflactores$mar16,
+      mes_6 == 4 ~ ing_6 / deflactores$abr16,
+      mes_6 == 5 ~ ing_6 / deflactores$mar16,
+      mes_6 == 6 ~ ing_6 / deflactores$jun16,
       TRUE       ~ ing_6
     ),
     ing_5 = case_when(
-      mes_5 == 3 ~ ing_5 / deflactores["mar16"],
-      mes_5 == 4 ~ ing_5 / deflactores["abr16"],
-      mes_5 == 5 ~ ing_5 / deflactores["may16"],
-      mes_5 == 6 ~ ing_5 / deflactores["jun16"],
-      mes_5 == 7 ~ ing_5 / deflactores["jul16"],
+      mes_5 == 3 ~ ing_5 / deflactores$mar16,
+      mes_5 == 4 ~ ing_5 / deflactores$abr16,
+      mes_5 == 5 ~ ing_5 / deflactores$may16,
+      mes_5 == 6 ~ ing_5 / deflactores$jun16,
+      mes_5 == 7 ~ ing_5 / deflactores$jul16,
       TRUE       ~ ing_5
     ),
     ing_4 = case_when(
-      mes_4 == 4 ~ ing_4 / deflactores["abr16"],
-      mes_4 == 5 ~ ing_4 / deflactores["may16"],
-      mes_4 == 6 ~ ing_4 / deflactores["jun16"],
-      mes_4 == 7 ~ ing_4 / deflactores["jul16"],
-      mes_4 == 8 ~ ing_4 / deflactores["ago16"],
+      mes_4 == 4 ~ ing_4 / deflactores$abr16,
+      mes_4 == 5 ~ ing_4 / deflactores$may16,
+      mes_4 == 6 ~ ing_4 / deflactores$jun16,
+      mes_4 == 7 ~ ing_4 / deflactores$jul16,
+      mes_4 == 8 ~ ing_4 / deflactores$ago16,
       TRUE       ~ ing_4
     ),
     ing_3 = case_when(
-      mes_3 == 5 ~ ing_3 / deflactores["may16"],
-      mes_3 == 6 ~ ing_3 / deflactores["jun16"],
-      mes_3 == 7 ~ ing_3 / deflactores["jul16"],
-      mes_3 == 8 ~ ing_3 / deflactores["ago16"],
-      mes_3 == 9 ~ ing_3 / deflactores["sep16"],
+      mes_3 == 5 ~ ing_3 / deflactores$may16,
+      mes_3 == 6 ~ ing_3 / deflactores$jun16,
+      mes_3 == 7 ~ ing_3 / deflactores$jul16,
+      mes_3 == 8 ~ ing_3 / deflactores$ago16,
+      mes_3 == 9 ~ ing_3 / deflactores$sep16,
       TRUE       ~ ing_3
     ),
     ing_2 = case_when(
-      mes_2 == 6  ~ ing_2 / deflactores["jun16"],
-      mes_2 == 7  ~ ing_2 / deflactores["jul16"],
-      mes_2 == 8  ~ ing_2 / deflactores["ago16"],
-      mes_2 == 9  ~ ing_2 / deflactores["sep16"],
-      mes_2 == 10 ~ ing_2 / deflactores["oct16"],
+      mes_2 == 6  ~ ing_2 / deflactores$jun16,
+      mes_2 == 7  ~ ing_2 / deflactores$jul16,
+      mes_2 == 8  ~ ing_2 / deflactores$ago16,
+      mes_2 == 9  ~ ing_2 / deflactores$sep16,
+      mes_2 == 10 ~ ing_2 / deflactores$oct16,
       TRUE        ~ ing_2
     ),
     ing_1 = case_when(
-      mes_1 == 7  ~ ing_1 / deflactores["jul16"],
-      mes_1 == 8  ~ ing_1 / deflactores["ago16"],
-      mes_1 == 9  ~ ing_1 / deflactores["sep16"],
-      mes_1 == 10 ~ ing_1 / deflactores["oct16"],
-      mes_1 == 11 ~ ing_1 / deflactores["nov16"],
+      mes_1 == 7  ~ ing_1 / deflactores$jul16,
+      mes_1 == 8  ~ ing_1 / deflactores$ago16,
+      mes_1 == 9  ~ ing_1 / deflactores$sep16,
+      mes_1 == 10 ~ ing_1 / deflactores$oct16,
+      mes_1 == 11 ~ ing_1 / deflactores$nov16,
       
       # Se deflactan las claves P008 y P015 (Reparto de utilidades) y 
       # P009 y P016 (aguinaldo) con los deflactores de mayo a agosto 2016 
       # y de diciembre de 2015 a agosto 2016, respectivamente, y se obtiene 
       # el promedio mensual.
-      clave %in% c("P008", "P015") ~ ing_1 / deflactores["may16"] / 12,
-      clave %in% c("P009", "P016") ~ ing_1 / deflactores["dic15"] / 12,
+      clave %in% c("P008", "P015") ~ ing_1 / deflactores$may16 / 12,
+      clave %in% c("P009", "P016") ~ ing_1 / deflactores$dic15 / 12,
       TRUE                         ~ ing_1
     )
   ) %>% 
@@ -1269,7 +1269,151 @@ no_monetario_persona <- gastos_persona_original %>%
 no_monetario_hogar <- gastos_hogar_original %>% 
   rename_all(tolower) %>% 
   arrange(folioviv, foliohog) %>% 
-  mutate(numren = NA, origen_rem = NA, inst = NA)
+  mutate(numren = NA_character_, origen_rem = NA, inst = NA_character_)
+
+# Para deflactar la información de gasto no monetario  se utiliza la decena de
+# levantamiento de la encuesta, la cual se encuentra en la octava posición del
+# folio de la vivienda. Para ello se crea una variable que contenga la decena
+# de levantamiento.
+no_monetario <- full_join(no_monetario_hogar, no_monetario_persona) %>% 
+  mutate(decena = as.numeric(str_sub(folioviv, 8, 8)))
+
+rm(list = setdiff(ls(), c("no_monetario", "ingresos_", "nomonetario", "ingresos2")))
+gc()
+
+# Definición de los deflactores
+deflactores_ <- list(
+  # Rubro 1.1 semanal. Alimentos
+  "R1.1" = list(
+    d11w07 =	0.9985457696,
+    d11w08 =	1.0000000000,
+    d11w09 =	1.0167932672,
+    d11w10 =	1.0199415214,
+    d11w11 =	1.0251086805
+  ),
+  # Rubro 1.2 semanal. Bebidas alcohólicas y tabaco
+  "R1.2" = list(
+    d12w07 =	0.9959845820,
+    d12w08 =	1.0000000000,
+    d12w09 =	1.0066744829,
+    d12w10 =	1.0087894741,
+    d12w11 =	1.0100998490
+  ),
+  # Rubro 2 trimestral. Vestido, calzado y accesorios
+  "R2" = list(
+    d2t05 =	0.9920067602,
+    d2t06 =	0.9948005139,
+    d2t07 =	0.9986462366,
+    d2t08 =	1.0053546946
+  ),
+  # Rubro 3 mensual. Vivienda
+  "R3" = list(
+    d3m07 =	1.0017314941,
+    d3m08 =	1.0000000000,
+    d3m09 =	0.9978188915,
+    d3m10 =	1.0133832055,
+    d3m11 =	1.0358543632
+  ),
+  # Rubro 4.2 mensual. Accesorios y artículos de limpieza para el hogar
+  "R4.2s" = list(
+    d42m07 =	0.9936894797,
+    d42m08 =	1.0000000000,
+    d42m09 =	1.0041605121,
+    d42m10 =	1.0056376169,
+    d42m11 =	1.0087477433
+  ),
+  # Rubro 4.2 trimestral. Accesorios y artículos de limpieza para el hogar
+  "R4.2t" = list(
+    d42t05 =	0.9932545544,
+    d42t06 =	0.9960501122,
+    d42t07 =	0.9992833306,
+    d42t08 =	1.0032660430
+  ),
+  # Rubro 4.1 semestral. Muebles y aparatos domésticos
+  "R4.1" = list(
+    d41s02 =	1.0081456317,
+    d41s03 =	1.0057381027,
+    d41s04 =	1.0038444337,
+    d41s05 =	1.0025359940
+  ),
+  # Rubro 5.1 trimestral. Salud
+  "R5.1" = list(
+    d51t05 =	0.9948500567,
+    d51t06 =	0.9974422922,
+    d51t07 =	1.0000318717,
+    d51t08 =	1.0028179937
+  ),
+  # Rubro 6.1.1 semanal. Transporte público urbano
+  "R6.1.1" = list(
+    d611w07 =	0.9998162514,
+    d611w08 =	1.0000000000,
+    d611w09 =	1.0010465683,
+    d611w10 =	1.0030038907,
+    d611w11 =	1.0040584480
+  ),
+  # Rubro 6 mensual. Transporte
+  "R6m" = list(
+    d6m07 =	0.9907765708,
+    d6m08 =	1.0000000000,
+    d6m09 =	1.0049108739,
+    d6m10 =	1.0097440440,
+    d6m11 =	1.0137147031
+  ),
+  # Rubro 6 semestral. Transporte
+  "R6s" = list(
+    d6s02 =	0.9749314912,
+    d6s03 =	0.9796636466,
+    d6s04 =	0.9851637735,
+    d6s05 =	0.9917996695
+  ),
+  # Rubro 7 mensual. Educación y esparcimiento
+  "R7" = list(
+    d7m07 =	0.9997765641,
+    d7m08 =	1.0000000000,
+    d7m09 =	1.0128930818,
+    d7m10 =	1.0131744455,
+    d7m11 =	1.0158805031
+  ),
+  # Rubro 2.3 mensual. Accesorios y cuidados del vestido
+  "R2.3m" = list(
+    d23m07 =	0.9923456541,
+    d23m08 =	1.0000000000,
+    d23m09 =	1.0029207372,
+    d23m10 =	1.0029710948,
+    d23m11 =	1.0057155806
+  ),
+  # Rubro 2.3 trimestral. Accesorios y cuidados del vestido
+  "R2.3t" = list(
+    d23t05 =	0.9913748727,
+    d23t06 =	0.9950229966,
+    d23t07 =	0.9984221305,
+    d23t08 =	1.0019639440
+  ),
+  # INPC semestral
+  "INPC" = list(
+    dINPCs02 = 0.9973343817,
+    dINPCs03 = 0.9973929361,
+    dINPCs04 = 0.9982238506,
+    dINPCs05 = 1.0006008794
+  )
+)
+
+# Selección de rubros
+no_monetario <- no_monetario %>% 
+  mutate(
+    gasnomon = if_else(is.na(gas_nm_tri), 0, gas_nm_tri / 3),
+    esp = if_else(tipo_gasto == "G4", true = 1, false = NA_real_),
+    reg = if_else(tipo_gasto %in% c("G5", "G6"), true = 1, false = NA_real_)
+  ) %>% 
+  filter(!(tipo_gasto %in% c("G2", "G3", "G7")))
+  
+
+  
+setequal(no_monetario, nomonetario)
+
+
+
+
 
 
 # II. Pobreza =============================================================
