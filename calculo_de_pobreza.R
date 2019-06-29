@@ -1286,116 +1286,116 @@ gc()
 deflactores_ <- list(
   # Rubro 1.1 semanal. Alimentos
   "R1.1" = list(
-    d11w07 =	0.9985457696,
-    d11w08 =	1.0000000000,
-    d11w09 =	1.0167932672,
-    d11w10 =	1.0199415214,
-    d11w11 =	1.0251086805
+    w07 =	0.9985457696,
+    w08 =	1.0000000000,
+    w09 =	1.0167932672,
+    w10 =	1.0199415214,
+    w11 =	1.0251086805
   ),
   # Rubro 1.2 semanal. Bebidas alcohólicas y tabaco
   "R1.2" = list(
-    d12w07 =	0.9959845820,
-    d12w08 =	1.0000000000,
-    d12w09 =	1.0066744829,
-    d12w10 =	1.0087894741,
-    d12w11 =	1.0100998490
+    w07 =	0.9959845820,
+    w08 =	1.0000000000,
+    w09 =	1.0066744829,
+    w10 =	1.0087894741,
+    w11 =	1.0100998490
   ),
   # Rubro 2 trimestral. Vestido, calzado y accesorios
   "R2" = list(
-    d2t05 =	0.9920067602,
-    d2t06 =	0.9948005139,
-    d2t07 =	0.9986462366,
-    d2t08 =	1.0053546946
+    t05 =	0.9920067602,
+    t06 =	0.9948005139,
+    t07 =	0.9986462366,
+    t08 =	1.0053546946
   ),
   # Rubro 3 mensual. Vivienda
   "R3" = list(
-    d3m07 =	1.0017314941,
-    d3m08 =	1.0000000000,
-    d3m09 =	0.9978188915,
-    d3m10 =	1.0133832055,
-    d3m11 =	1.0358543632
+    m07 =	1.0017314941,
+    m08 =	1.0000000000,
+    m09 =	0.9978188915,
+    m10 =	1.0133832055,
+    m11 =	1.0358543632
   ),
   # Rubro 4.2 mensual. Accesorios y artículos de limpieza para el hogar
-  "R4.2s" = list(
-    d42m07 =	0.9936894797,
-    d42m08 =	1.0000000000,
-    d42m09 =	1.0041605121,
-    d42m10 =	1.0056376169,
-    d42m11 =	1.0087477433
+  "R4.2a" = list(
+    m07 =	0.9936894797,
+    m08 =	1.0000000000,
+    m09 =	1.0041605121,
+    m10 =	1.0056376169,
+    m11 =	1.0087477433
   ),
   # Rubro 4.2 trimestral. Accesorios y artículos de limpieza para el hogar
-  "R4.2t" = list(
-    d42t05 =	0.9932545544,
-    d42t06 =	0.9960501122,
-    d42t07 =	0.9992833306,
-    d42t08 =	1.0032660430
+  "R4.2b" = list(
+    t05 =	0.9932545544,
+    t06 =	0.9960501122,
+    t07 =	0.9992833306,
+    t08 =	1.0032660430
   ),
   # Rubro 4.1 semestral. Muebles y aparatos domésticos
   "R4.1" = list(
-    d41s02 =	1.0081456317,
-    d41s03 =	1.0057381027,
-    d41s04 =	1.0038444337,
-    d41s05 =	1.0025359940
+    s02 =	1.0081456317,
+    s03 =	1.0057381027,
+    s04 =	1.0038444337,
+    s05 =	1.0025359940
   ),
   # Rubro 5.1 trimestral. Salud
   "R5.1" = list(
-    d51t05 =	0.9948500567,
-    d51t06 =	0.9974422922,
-    d51t07 =	1.0000318717,
-    d51t08 =	1.0028179937
+    t05 =	0.9948500567,
+    t06 =	0.9974422922,
+    t07 =	1.0000318717,
+    t08 =	1.0028179937
   ),
   # Rubro 6.1.1 semanal. Transporte público urbano
   "R6.1.1" = list(
-    d611w07 =	0.9998162514,
-    d611w08 =	1.0000000000,
-    d611w09 =	1.0010465683,
-    d611w10 =	1.0030038907,
-    d611w11 =	1.0040584480
+    w07 =	0.9998162514,
+    w08 =	1.0000000000,
+    w09 =	1.0010465683,
+    w10 =	1.0030038907,
+    w11 =	1.0040584480
   ),
   # Rubro 6 mensual. Transporte
-  "R6m" = list(
-    d6m07 =	0.9907765708,
-    d6m08 =	1.0000000000,
-    d6m09 =	1.0049108739,
-    d6m10 =	1.0097440440,
-    d6m11 =	1.0137147031
+  "R6a" = list(
+    m07 =	0.9907765708,
+    m08 =	1.0000000000,
+    m09 =	1.0049108739,
+    m10 =	1.0097440440,
+    m11 =	1.0137147031
   ),
   # Rubro 6 semestral. Transporte
-  "R6s" = list(
-    d6s02 =	0.9749314912,
-    d6s03 =	0.9796636466,
-    d6s04 =	0.9851637735,
-    d6s05 =	0.9917996695
+  "R6b" = list(
+    s02 =	0.9749314912,
+    s03 =	0.9796636466,
+    s04 =	0.9851637735,
+    s05 =	0.9917996695
   ),
   # Rubro 7 mensual. Educación y esparcimiento
   "R7" = list(
-    d7m07 =	0.9997765641,
-    d7m08 =	1.0000000000,
-    d7m09 =	1.0128930818,
-    d7m10 =	1.0131744455,
-    d7m11 =	1.0158805031
+    m07 =	0.9997765641,
+    m08 =	1.0000000000,
+    m09 =	1.0128930818,
+    m10 =	1.0131744455,
+    m11 =	1.0158805031
   ),
   # Rubro 2.3 mensual. Accesorios y cuidados del vestido
-  "R2.3m" = list(
-    d23m07 =	0.9923456541,
-    d23m08 =	1.0000000000,
-    d23m09 =	1.0029207372,
-    d23m10 =	1.0029710948,
-    d23m11 =	1.0057155806
+  "R2.3a" = list(
+    m07 =	0.9923456541,
+    m08 =	1.0000000000,
+    m09 =	1.0029207372,
+    m10 =	1.0029710948,
+    m11 =	1.0057155806
   ),
   # Rubro 2.3 trimestral. Accesorios y cuidados del vestido
-  "R2.3t" = list(
-    d23t05 =	0.9913748727,
-    d23t06 =	0.9950229966,
-    d23t07 =	0.9984221305,
-    d23t08 =	1.0019639440
+  "R2.3b" = list(
+    t05 =	0.9913748727,
+    t06 =	0.9950229966,
+    t07 =	0.9984221305,
+    t08 =	1.0019639440
   ),
   # INPC semestral
   "INPC" = list(
-    dINPCs02 = 0.9973343817,
-    dINPCs03 = 0.9973929361,
-    dINPCs04 = 0.9982238506,
-    dINPCs05 = 1.0006008794
+    s02 = 0.9973343817,
+    s03 = 0.9973929361,
+    s04 = 0.9982238506,
+    s05 = 1.0006008794
   )
 )
 
@@ -1411,32 +1411,7 @@ no_monetario <- no_monetario %>%
          !(frecuencia %in% c("0", "5", "6", "NA") & tipo_gasto == "G5"))
 
 #Gasto en acc_alimentos deflactado (semanal)
-for (i in 1:222) {
-  gasto_ali = 1000 + i
-  string = paste("A", substr(as.character(gasto_ali), 2, 4),  sep = "")
-  print(string)
-}
 
-
-no_monetario_ <- no_monetario %>% 
-  mutate(
-    ali_nm = if_else(
-    clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))),
-    true = gasnomon,
-    false = NA_real_
-    )
-  )
-
-no_monetario_ <- no_monetario %>% 
-  mutate(
-    ali_nm = case_when(
-      clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))) ~ gasnomon,
-      decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$d11w08,
-      decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$d11w09,
-      decena %in% c(7:9) ~ ali_nm / deflactores_$R1.1$d11w10,
-      decena == 0        ~ ali_nm / deflactores_$R1.1$d11w11
-    )
-  )
 
 no_monetario_ <- no_monetario %>% 
   arrange(folioviv, foliohog, clave) %>% 
@@ -1446,12 +1421,12 @@ no_monetario_ <- no_monetario %>%
       true = gasnomon,
       false = NA_real_
     ),
-    # Gasto en alimentos
+    # Gasto en alimentos (semanal)
     ali_nm = case_when(
-      decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$d11w08,
-      decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$d11w09,
-      decena %in% c(7:9) ~ ali_nm / deflactores_$R1.1$d11w10,
-      decena == 0        ~ ali_nm / deflactores_$R1.1$d11w11
+      decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$w08,
+      decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$w09,
+      decena %in% c(7:9) ~ ali_nm / deflactores_$R1.1$w10,
+      decena == 0        ~ ali_nm / deflactores_$R1.1$w11
     )
   )
 
@@ -1462,7 +1437,6 @@ nomonetario_ <- nomonetario
 
 setequal(no_monetario, nomonetario_)
 
-setequal(no_monetario_, nomonetario)
 
 
 
