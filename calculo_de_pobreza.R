@@ -1276,7 +1276,8 @@ no_monetario_hogar <- gastos_hogar_original %>%
 # folio de la vivienda. Para ello se crea una variable que contenga la decena
 # de levantamiento.
 no_monetario <- full_join(no_monetario_hogar, no_monetario_persona) %>% 
-  mutate(decena = as.numeric(str_sub(folioviv, 8, 8)))
+  mutate(decena = as.numeric(str_sub(folioviv, 8, 8))) %>% 
+  arrange(folioviv, foliohog, clave)
 
 rm(list = setdiff(ls(), c("no_monetario", "ingresos_", "nomonetario", "ingresos2")))
 gc()
@@ -1405,14 +1406,63 @@ no_monetario <- no_monetario %>%
     esp = if_else(tipo_gasto == "G4", true = 1, false = NA_real_),
     reg = if_else(tipo_gasto %in% c("G5", "G6"), true = 1, false = NA_real_)
   ) %>% 
-  filter(!(tipo_gasto %in% c("G2", "G3", "G7")))
-  
+  filter(!(tipo_gasto %in% c("G2", "G3", "G7")),
+         !(frecuenciap %in% c("0", "9", "NA") & tipo_gasto == "G5"),
+         !(frecuencia %in% c("0", "5", "6", "NA") & tipo_gasto == "G5"))
 
-  
-setequal(no_monetario, nomonetario)
+#Gasto en acc_alimentos deflactado (semanal)
+for (i in 1:222) {
+  gasto_ali = 1000 + i
+  string = paste("A", substr(as.character(gasto_ali), 2, 4),  sep = "")
+  print(string)
+}
 
 
+no_monetario_ <- no_monetario %>% 
+  mutate(
+    ali_nm = if_else(
+    clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))),
+    true = gasnomon,
+    false = NA_real_
+    )
+  )
 
+no_monetario_ <- no_monetario %>% 
+  mutate(
+    ali_nm = case_when(
+      clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))) ~ gasnomon,
+      decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$d11w08,
+      decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$d11w09,
+      decena %in% c(7:9) ~ ali_nm / deflactores_$R1.1$d11w10,
+      decena == 0        ~ ali_nm / deflactores_$R1.1$d11w11
+    )
+  )
+
+no_monetario_ <- no_monetario %>% 
+  arrange(folioviv, foliohog, clave) %>% 
+  mutate(
+    ali_nm = if_else(
+      clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))),
+      true = gasnomon,
+      false = NA_real_
+    ),
+    # Gasto en alimentos
+    ali_nm = case_when(
+      decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$d11w08,
+      decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$d11w09,
+      decena %in% c(7:9) ~ ali_nm / deflactores_$R1.1$d11w10,
+      decena == 0        ~ ali_nm / deflactores_$R1.1$d11w11
+    )
+  )
+
+
+setequal(no_monetario_, nomonetario)
+
+nomonetario_ <- nomonetario
+
+setequal(no_monetario, nomonetario_)
+
+setequal(no_monetario_, nomonetario)
 
 
 
