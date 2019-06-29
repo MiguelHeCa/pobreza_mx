@@ -1230,31 +1230,46 @@ ingresos_ <- ingresos_ %>%
       # el promedio mensual.
       clave %in% c("P008", "P015") ~ ing_1 / deflactores["may16"] / 12,
       clave %in% c("P009", "P016") ~ ing_1 / deflactores["dic15"] / 12,
-      TRUE        ~ ing_1
+      TRUE                         ~ ing_1
     )
-  )
+  ) %>% 
+  mutate(
+    # Una vez realizada la deflactación, se procede a obtener el ingreso
+    # mensual promedio en los últimos seis meses, para cada persona y
+    # clave de ingreso.
+    ing_mens = rowMeans(select(., ing_1:ing_6), na.rm = TRUE),
+    
+    # Para obtener el ingreso corriente monetario del hogar, se seleccionan 
+    # las claves de ingreso correspondientes.
+    ing_mon = if_else(
+      clave %in% paste0("P", sprintf("%03d", c(1:9, 11:16, 18:48, 67:81))),
+      true = ing_mens,
+      false = NA_real_
+    )
+  ) %>% 
+  select(folioviv, foliohog, ing_mon) %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise(ing_mon = sum(ing_mon, na.rm = TRUE)) %>% 
+  arrange(folioviv, foliohog, ing_mon)
 
-# Una vez realizada la deflactación, se procede a obtener el ingreso
-# mensual promedio en los últimos seis meses, para cada persona y
-# clave de ingreso.
-ingresos_ <- ingresos_ %>%
-  mutate(ing_mens = rowMeans(select(., ing_1:ing_6), na.rm = TRUE))
+# saveRDS(aguinaldo, "data/aguinaldo.rds")
+# saveRDS(ingresos_, "data/ingreso_deflactado16.rds")
+rm(list = setdiff(ls(), "ingresos_"))
+gc()
 
+# Creación del ingreso no monetario deflactado a pesos de agosto del 2016.
+gastos_persona_original <- readRDS("original/gastospersona.rds")
+gastos_hogar_original <- readRDS("original/gastoshogar.rds")
 
-#Para obtener el ingreso corriente monetario, se seleccionan las claves de ingreso correspondientes
-ingresos_ %>% 
+no_monetario_persona <- gastos_persona_original %>% 
+  rename_all(tolower) %>% 
+  rename(frecuenciap = frec_rem) %>% 
+  arrange(folioviv, foliohog)
 
-
-INGRESOS <- ingresos %>% 
-  mutate_at(vars(mes_1:mes_6), as.numeric) %>% 
-  arrange(folioviv, foliohog, numren, clave)
-
-
-setequal(ingresos_, INGRESOS)
-
-
-saveRDS(aguinaldo, "data/aguinaldo.rds")
-
+no_monetario_hogar <- gastos_hogar_original %>% 
+  rename_all(tolower) %>% 
+  arrange(folioviv, foliohog) %>% 
+  mutate(numren = NA, origen_rem = NA, inst = NA)
 
 
 # II. Pobreza =============================================================
