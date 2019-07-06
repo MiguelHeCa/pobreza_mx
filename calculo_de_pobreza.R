@@ -1418,64 +1418,141 @@ nomonetario <- viejo_nomonetario
 
 no_monetario_ <- no_monetario %>% 
   mutate(
-    # Gasto en alimentos (semanal)
+    # Alimentos (semanal)
     ali_nm = if_else(
       clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))),
-      true = gasnomon,
+      true = case_when(
+        decena %in% c(1:3) ~ gasnomon / deflactores_$R1.1$w08,
+        decena %in% c(4:6) ~ gasnomon / deflactores_$R1.1$w09,
+        decena %in% c(7:9) ~ gasnomon / deflactores_$R1.1$w10,
+        decena == 0        ~ gasnomon / deflactores_$R1.1$w11
+      ),
       false = NA_real_
-    ),
-    ali_nm = case_when(
-      decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$w08,
-      decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$w09,
-      decena %in% c(7:9) ~ ali_nm / deflactores_$R1.1$w10,
-      decena == 0        ~ ali_nm / deflactores_$R1.1$w11
     )
   )
 
-setequal(no_monetario_, nomonetario)
-map(list(nomonetario$ali_nm, no_monetario_$ali_nm), ~ sum(is.na(.x)))
-map(list(nomonetario$ali_nm, no_monetario_$ali_nm), mean, na.rm = T)
+mean(nomonetario$ali_nm, na.rm = T) == mean(no_monetario_$ali_nm, na.rm = T) &
+sum(is.na(nomonetario$ali_nm)) == sum(is.na(no_monetario_$ali_nm))
 
-# Gasto en Alcohol y tabaco (semanal)
+
 no_monetario_ <- no_monetario_ %>% 
   mutate(
-    # Gasto en Alcohol y tabaco (semanal)
+    # Alcohol y tabaco (semanal)
     alta_nm = if_else(
       clave %in% paste0("A", sprintf("%03d", c(223:241))),
-      true = gasnomon,
+      true = case_when(
+        decena %in% c(1:3) ~ gasnomon / deflactores_$R1.2$w08,
+        decena %in% c(4:6) ~ gasnomon / deflactores_$R1.2$w09,
+        decena %in% c(7:9) ~ gasnomon / deflactores_$R1.2$w10,
+        decena == 0        ~ gasnomon / deflactores_$R1.2$w11
+      ),
       false = NA_real_
-    ),
-    alta_nm = case_when(
-      decena %in% c(1:3) ~ alta_nm / deflactores_$R1.2$w08,
-      decena %in% c(4:6) ~ alta_nm / deflactores_$R1.2$w09,
-      decena %in% c(7:9) ~ alta_nm / deflactores_$R1.2$w10,
-      decena == 0        ~ alta_nm / deflactores_$R1.2$w11
     )
   )
 
-map(list(nomonetario$alta_nm, no_monetario_$alta_nm), ~ sum(is.na(.x)))
-map(list(nomonetario$alta_nm, no_monetario_$alta_nm), mean, na.rm = T)
+mean(nomonetario$alta_nm, na.rm = T) == mean(no_monetario_$alta_nm, na.rm = T) &
+sum(is.na(nomonetario$alta_nm)) == sum(is.na(no_monetario_$alta_nm))
 
-# Gasto en Alcohol y tabaco (semanal)
+
 no_monetario_ <- no_monetario_ %>% 
   mutate(
-    # Gasto en Alcohol y tabaco (semanal)
+    # Vestido y calzado (trimestral)
     veca_nm = if_else(
-      clave %in% paste0("H", sprintf("%03d", c(1:222))),
-      true = gasnomon,
+      clave %in% paste0("H", sprintf("%03d", c(1:122, 136))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R2$t05,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R2$t06,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R2$t07,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R2$t08
+      ),
       false = NA_real_
-    ),
-    veca_nm = case_when(
-      clave == "H136"    ~ gasnomon
-      decena %in% c(1:2) ~ veca_nm / deflactores_$R2$t05,
-      decena %in% c(3:5) ~ veca_nm / deflactores_$R2$t06,
-      decena %in% c(6:8) ~ veca_nm / deflactores_$R2$t07,
-      decena %in% c(9,0) ~ veca_nm / deflactores_$R2$t08
     )
   )
 
-map(list(nomonetario$veca_nm, no_monetario_$veca_nm), ~ sum(is.na(.x)))
-map(list(nomonetario$veca_nm, no_monetario_$veca_nm), mean, na.rm = T)
+mean(nomonetario$veca_nm, na.rm = T) == mean(no_monetario_$veca_nm, na.rm = T) &
+  sum(is.na(nomonetario$veca_nm)) == sum(is.na(no_monetario_$veca_nm))
+# map(list(nomonetario$veca_nm, no_monetario_$veca_nm), ~ sum(is.na(.x)))
+# map(list(nomonetario$veca_nm, no_monetario_$veca_nm), mean, na.rm = T)
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Vivienda y servicios de conservación (mensual)
+    viv_nm = if_else(
+      clave %in% paste0("G", sprintf("%03d", c(1:16))) |
+        clave %in% paste0("R", sprintf("%03d", c(1:4, 13))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R3$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R3$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R3$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R3$m10
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$viv_nm, na.rm = T) == mean(no_monetario_$viv_nm, na.rm = T) &
+  sum(is.na(nomonetario$viv_nm)) == sum(is.na(no_monetario_$viv_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Artículos de limpieza (mensual)
+    lim_nm = if_else(
+      clave %in% paste0("C", sprintf("%03d", c(1:24))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R4.2a$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R4.2a$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R4.2a$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R4.2a$m10
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$lim_nm, na.rm = T) == mean(no_monetario_$lim_nm, na.rm = T) &
+  sum(is.na(nomonetario$lim_nm)) == sum(is.na(no_monetario_$lim_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Cristalería y blancos (trimestral)
+    cris_nm = if_else(
+      clave %in% paste0("I", sprintf("%03d", c(1:26))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R4.2b$t05,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R4.2b$t06,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R4.2b$t07,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R4.2b$t08
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$cris_nm, na.rm = T) == mean(no_monetario_$cris_nm, na.rm = T) &
+  sum(is.na(nomonetario$cris_nm)) == sum(is.na(no_monetario_$cris_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Enseres domésticos y muebles (semestral)
+    ens_nm = if_else(
+      clave %in% paste0("K", sprintf("%03d", c(1:37))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R4.1$s02,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R4.1$s03,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R4.1$s04,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R4.1$s05
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$ens_nm, na.rm = T) == mean(no_monetario_$ens_nm, na.rm = T) &
+  sum(is.na(nomonetario$ens_nm)) == sum(is.na(no_monetario_$ens_nm))
+
+
+
 
 
 
