@@ -1675,24 +1675,41 @@ mean(nomonetario$edba_nm, na.rm = T) == mean(no_monetario_$edba_nm, na.rm = T) &
 
 no_monetario_ <- no_monetario_ %>% 
   mutate(
-    # Educación básica (mensual)
-    edba_nm = if_else(
-      clave %in% paste0("E", sprintf("%03d", c(2:3))) |
-        clave %in% paste0("H", sprintf("%03d", c(134:135))),
+    # Cuidado personal (mensual)
+    cuip_nm = if_else(
+      clave %in% paste0("D", sprintf("%03d", c(1:26))) |
+        clave == "H132",
       true = case_when(
-        decena %in% c(1:2) ~ gasnomon / deflactores_$R7$m07,
-        decena %in% c(3:5) ~ gasnomon / deflactores_$R7$m08,
-        decena %in% c(6:8) ~ gasnomon / deflactores_$R7$m09,
-        decena %in% c(9,0) ~ gasnomon / deflactores_$R7$m10
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R2.3a$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R2.3a$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R2.3a$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R2.3a$m10
       ),
       false = NA_real_
     )
   )
 
-mean(nomonetario$edba_nm, na.rm = T) == mean(no_monetario_$edba_nm, na.rm = T) &
-  sum(is.na(nomonetario$edba_nm)) == sum(is.na(no_monetario_$edba_nm))
+mean(nomonetario$cuip_nm, na.rm = T) == mean(no_monetario_$cuip_nm, na.rm = T) &
+  sum(is.na(nomonetario$cuip_nm)) == sum(is.na(no_monetario_$cuip_nm))
 
 
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Accesorios personales (trimestral)
+    accp_nm = if_else(
+      clave %in% paste0("H", sprintf("%03d", c(123:131, 133))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R2.3b$t05,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R2.3b$t06,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R2.3b$t07,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R2.3b$t08
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$accp_nm, na.rm = T) == mean(no_monetario_$accp_nm, na.rm = T) &
+  sum(is.na(nomonetario$accp_nm)) == sum(is.na(no_monetario_$accp_nm))
 
 
 
