@@ -1279,8 +1279,8 @@ no_monetario <- full_join(no_monetario_hogar, no_monetario_persona) %>%
   mutate(decena = as.numeric(str_sub(folioviv, 8, 8))) %>% 
   arrange(folioviv, foliohog, clave)
 
-rm(list = setdiff(ls(), c("no_monetario", "ingresos_", "nomonetario", "ingresos2")))
-gc()
+# rm(list = setdiff(ls(), c("no_monetario", "ingresos_", "nomonetario", "ingresos2")))
+# gc()
 
 # Definición de los deflactores
 deflactores_ <- list(
@@ -1411,17 +1411,19 @@ no_monetario <- no_monetario %>%
          !(frecuencia %in% c("0", "5", "6", "NA") & tipo_gasto == "G5"))
 
 #Gasto en acc_alimentos deflactado (semanal)
+setequal(no_monetario, nomonetario)
+viejo_nomonetario <- nomonetario
 
+nomonetario <- viejo_nomonetario
 
 no_monetario_ <- no_monetario %>% 
-  arrange(folioviv, foliohog, clave) %>% 
   mutate(
+    # Gasto en alimentos (semanal)
     ali_nm = if_else(
       clave %in% paste0("A", sprintf("%03d", c(1:222, 242:247))),
       true = gasnomon,
       false = NA_real_
     ),
-    # Gasto en alimentos (semanal)
     ali_nm = case_when(
       decena %in% c(1:3) ~ ali_nm / deflactores_$R1.1$w08,
       decena %in% c(4:6) ~ ali_nm / deflactores_$R1.1$w09,
@@ -1430,14 +1432,55 @@ no_monetario_ <- no_monetario %>%
     )
   )
 
+setequal(no_monetario_, nomonetario)
+map(list(nomonetario$ali_nm, no_monetario_$ali_nm), ~ sum(is.na(.x)))
+map(list(nomonetario$ali_nm, no_monetario_$ali_nm), mean, na.rm = T)
+
+# Gasto en Alcohol y tabaco (semanal)
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Gasto en Alcohol y tabaco (semanal)
+    alta_nm = if_else(
+      clave %in% paste0("A", sprintf("%03d", c(223:241))),
+      true = gasnomon,
+      false = NA_real_
+    ),
+    alta_nm = case_when(
+      decena %in% c(1:3) ~ alta_nm / deflactores_$R1.2$w08,
+      decena %in% c(4:6) ~ alta_nm / deflactores_$R1.2$w09,
+      decena %in% c(7:9) ~ alta_nm / deflactores_$R1.2$w10,
+      decena == 0        ~ alta_nm / deflactores_$R1.2$w11
+    )
+  )
+
+map(list(nomonetario$alta_nm, no_monetario_$alta_nm), ~ sum(is.na(.x)))
+map(list(nomonetario$alta_nm, no_monetario_$alta_nm), mean, na.rm = T)
+
+# Gasto en Alcohol y tabaco (semanal)
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Gasto en Alcohol y tabaco (semanal)
+    veca_nm = if_else(
+      clave %in% paste0("H", sprintf("%03d", c(1:222))),
+      true = gasnomon,
+      false = NA_real_
+    ),
+    veca_nm = case_when(
+      clave == "H136"    ~ gasnomon
+      decena %in% c(1:2) ~ veca_nm / deflactores_$R2$t05,
+      decena %in% c(3:5) ~ veca_nm / deflactores_$R2$t06,
+      decena %in% c(6:8) ~ veca_nm / deflactores_$R2$t07,
+      decena %in% c(9,0) ~ veca_nm / deflactores_$R2$t08
+    )
+  )
+
+map(list(nomonetario$veca_nm, no_monetario_$veca_nm), ~ sum(is.na(.x)))
+map(list(nomonetario$veca_nm, no_monetario_$veca_nm), mean, na.rm = T)
+
+
+
 
 setequal(no_monetario_, nomonetario)
-
-nomonetario_ <- nomonetario
-
-setequal(no_monetario, nomonetario_)
-
-
 
 
 # II. Pobreza =============================================================
