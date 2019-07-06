@@ -1411,10 +1411,10 @@ no_monetario <- no_monetario %>%
          !(frecuencia %in% c("0", "5", "6", "NA") & tipo_gasto == "G5"))
 
 #Gasto en acc_alimentos deflactado (semanal)
-setequal(no_monetario, nomonetario)
-viejo_nomonetario <- nomonetario
-
-nomonetario <- viejo_nomonetario
+# setequal(no_monetario, nomonetario)
+# viejo_nomonetario <- nomonetario
+# 
+# nomonetario <- viejo_nomonetario
 
 no_monetario_ <- no_monetario %>% 
   mutate(
@@ -1651,6 +1651,48 @@ no_monetario_ <- no_monetario_ %>%
 
 mean(nomonetario$edre_nm, na.rm = T) == mean(no_monetario_$edre_nm, na.rm = T) &
   sum(is.na(nomonetario$edre_nm)) == sum(is.na(no_monetario_$edre_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Educación básica (mensual)
+    edba_nm = if_else(
+      clave %in% paste0("E", sprintf("%03d", c(2:3))) |
+        clave %in% paste0("H", sprintf("%03d", c(134:135))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R7$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R7$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R7$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R7$m10
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$edba_nm, na.rm = T) == mean(no_monetario_$edba_nm, na.rm = T) &
+  sum(is.na(nomonetario$edba_nm)) == sum(is.na(no_monetario_$edba_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Educación básica (mensual)
+    edba_nm = if_else(
+      clave %in% paste0("E", sprintf("%03d", c(2:3))) |
+        clave %in% paste0("H", sprintf("%03d", c(134:135))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R7$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R7$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R7$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R7$m10
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$edba_nm, na.rm = T) == mean(no_monetario_$edba_nm, na.rm = T) &
+  sum(is.na(nomonetario$edba_nm)) == sum(is.na(no_monetario_$edba_nm))
+
+
 
 
 
