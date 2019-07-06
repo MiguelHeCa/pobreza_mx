@@ -16,14 +16,19 @@
 # No monetario: gastospersona.rds
 #               gastoshogar.rds
 
+
 # Preparación de carpetas -------------------------------------------------
 
 # Crea carpeta de destino en caso de que no se encuentre en folder principal
-if (!dir.exists("./data")) {dir.create("./data")}
+if (!dir.exists("./data")) {
+  dir.create("./data")
+  }
 
 # Paquetes ----------------------------------------------------------------
 
-library(tidyverse)
+if (!require(tidyverse)) {
+  install.packages("tidyverse")
+}
 
 # I. Indicadores de Privación Social ======================================
 
@@ -1277,10 +1282,22 @@ no_monetario_hogar <- gastos_hogar_original %>%
 # de levantamiento.
 no_monetario <- full_join(no_monetario_hogar, no_monetario_persona) %>% 
   mutate(decena = as.numeric(str_sub(folioviv, 8, 8))) %>% 
-  arrange(folioviv, foliohog, clave)
+  arrange(folioviv, foliohog)
 
 # rm(list = setdiff(ls(), c("no_monetario", "ingresos_", "nomonetario", "ingresos2")))
 # gc()
+
+# Selección de rubros
+no_monetario <- no_monetario %>% 
+  mutate(
+    gasnomon = if_else(is.na(gas_nm_tri), 0, gas_nm_tri / 3),
+    esp = if_else(tipo_gasto == "G4", true = 1, false = NA_real_),
+    reg = if_else(tipo_gasto %in% c("G5", "G6"), true = 1, false = NA_real_)
+  ) %>% 
+  filter(!(tipo_gasto %in% c("G2", "G3", "G7")),
+         !(frecuenciap %in% c("0", "9", "NA") & tipo_gasto == "G5"),
+         !(frecuencia %in% c("0", "5", "6", "NA") & tipo_gasto == "G5"))
+
 
 # Definición de los deflactores
 deflactores_ <- list(
@@ -1399,24 +1416,9 @@ deflactores_ <- list(
   )
 )
 
-# Selección de rubros
 no_monetario <- no_monetario %>% 
-  mutate(
-    gasnomon = if_else(is.na(gas_nm_tri), 0, gas_nm_tri / 3),
-    esp = if_else(tipo_gasto == "G4", true = 1, false = NA_real_),
-    reg = if_else(tipo_gasto %in% c("G5", "G6"), true = 1, false = NA_real_)
-  ) %>% 
-  filter(!(tipo_gasto %in% c("G2", "G3", "G7")),
-         !(frecuenciap %in% c("0", "9", "NA") & tipo_gasto == "G5"),
-         !(frecuencia %in% c("0", "5", "6", "NA") & tipo_gasto == "G5"))
-
-#Gasto en acc_alimentos deflactado (semanal)
-# setequal(no_monetario, nomonetario)
-# viejo_nomonetario <- nomonetario
-# 
-# nomonetario <- viejo_nomonetario
-
-no_monetario_ <- no_monetario %>% 
+  arrange(folioviv, foliohog, clave, decena, gasnomon) %>% 
+  # Gastos deflactados en:
   mutate(
     # Alimentos (semanal)
     ali_nm = if_else(
@@ -1428,15 +1430,7 @@ no_monetario_ <- no_monetario %>%
         decena == 0        ~ gasnomon / deflactores_$R1.1$w11
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$ali_nm, na.rm = T) == mean(no_monetario_$ali_nm, na.rm = T) &
-sum(is.na(nomonetario$ali_nm)) == sum(is.na(no_monetario_$ali_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Alcohol y tabaco (semanal)
     alta_nm = if_else(
       clave %in% paste0("A", sprintf("%03d", c(223:241))),
@@ -1447,15 +1441,7 @@ no_monetario_ <- no_monetario_ %>%
         decena == 0        ~ gasnomon / deflactores_$R1.2$w11
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$alta_nm, na.rm = T) == mean(no_monetario_$alta_nm, na.rm = T) &
-sum(is.na(nomonetario$alta_nm)) == sum(is.na(no_monetario_$alta_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Vestido y calzado (trimestral)
     veca_nm = if_else(
       clave %in% paste0("H", sprintf("%03d", c(1:122, 136))),
@@ -1466,17 +1452,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R2$t08
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$veca_nm, na.rm = T) == mean(no_monetario_$veca_nm, na.rm = T) &
-  sum(is.na(nomonetario$veca_nm)) == sum(is.na(no_monetario_$veca_nm))
-# map(list(nomonetario$veca_nm, no_monetario_$veca_nm), ~ sum(is.na(.x)))
-# map(list(nomonetario$veca_nm, no_monetario_$veca_nm), mean, na.rm = T)
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Vivienda y servicios de conservación (mensual)
     viv_nm = if_else(
       clave %in% paste0("G", sprintf("%03d", c(1:16))) |
@@ -1488,15 +1464,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R3$m10
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$viv_nm, na.rm = T) == mean(no_monetario_$viv_nm, na.rm = T) &
-  sum(is.na(nomonetario$viv_nm)) == sum(is.na(no_monetario_$viv_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Artículos de limpieza (mensual)
     lim_nm = if_else(
       clave %in% paste0("C", sprintf("%03d", c(1:24))),
@@ -1507,15 +1475,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R4.2a$m10
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$lim_nm, na.rm = T) == mean(no_monetario_$lim_nm, na.rm = T) &
-  sum(is.na(nomonetario$lim_nm)) == sum(is.na(no_monetario_$lim_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Cristalería y blancos (trimestral)
     cris_nm = if_else(
       clave %in% paste0("I", sprintf("%03d", c(1:26))),
@@ -1526,15 +1486,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R4.2b$t08
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$cris_nm, na.rm = T) == mean(no_monetario_$cris_nm, na.rm = T) &
-  sum(is.na(nomonetario$cris_nm)) == sum(is.na(no_monetario_$cris_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Enseres domésticos y muebles (semestral)
     ens_nm = if_else(
       clave %in% paste0("K", sprintf("%03d", c(1:37))),
@@ -1545,15 +1497,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R4.1$s05
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$ens_nm, na.rm = T) == mean(no_monetario_$ens_nm, na.rm = T) &
-  sum(is.na(nomonetario$ens_nm)) == sum(is.na(no_monetario_$ens_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Salud (trimestral)
     sal_nm = if_else(
       clave %in% paste0("J", sprintf("%03d", c(1:72))),
@@ -1564,15 +1508,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R5.1$t08
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$sal_nm, na.rm = T) == mean(no_monetario_$sal_nm, na.rm = T) &
-  sum(is.na(nomonetario$sal_nm)) == sum(is.na(no_monetario_$sal_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Transporte público (semanal)
     tpub_nm = if_else(
       clave %in% paste0("B", sprintf("%03d", c(1:7))),
@@ -1583,15 +1519,7 @@ no_monetario_ <- no_monetario_ %>%
         decena == 0        ~ gasnomon / deflactores_$R6.1.1$w11
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$tpub_nm, na.rm = T) == mean(no_monetario_$tpub_nm, na.rm = T) &
-  sum(is.na(nomonetario$tpub_nm)) == sum(is.na(no_monetario_$tpub_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Transporte foráneo (semestral)
     tfor_nm = if_else(
       clave %in% paste0("M", sprintf("%03d", c(1:18))) |
@@ -1603,15 +1531,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R6b$s05
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$tfor_nm, na.rm = T) == mean(no_monetario_$tfor_nm, na.rm = T) &
-  sum(is.na(nomonetario$tfor_nm)) == sum(is.na(no_monetario_$tfor_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Comunicaciones (mensual)
     com_nm = if_else(
       clave %in% paste0("F", sprintf("%03d", c(1:6))) |
@@ -1623,15 +1543,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R6a$m10
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$com_nm, na.rm = T) == mean(no_monetario_$com_nm, na.rm = T) &
-  sum(is.na(nomonetario$com_nm)) == sum(is.na(no_monetario_$com_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Educación y recreación (mensual)
     edre_nm = if_else(
       clave %in% paste0("E", sprintf("%03d", c(1:34))) |
@@ -1646,15 +1558,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R7$m10
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$edre_nm, na.rm = T) == mean(no_monetario_$edre_nm, na.rm = T) &
-  sum(is.na(nomonetario$edre_nm)) == sum(is.na(no_monetario_$edre_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Educación básica (mensual)
     edba_nm = if_else(
       clave %in% paste0("E", sprintf("%03d", c(2:3))) |
@@ -1666,15 +1570,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R7$m10
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$edba_nm, na.rm = T) == mean(no_monetario_$edba_nm, na.rm = T) &
-  sum(is.na(nomonetario$edba_nm)) == sum(is.na(no_monetario_$edba_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Cuidado personal (mensual)
     cuip_nm = if_else(
       clave %in% paste0("D", sprintf("%03d", c(1:26))) |
@@ -1686,15 +1582,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R2.3a$m10
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$cuip_nm, na.rm = T) == mean(no_monetario_$cuip_nm, na.rm = T) &
-  sum(is.na(nomonetario$cuip_nm)) == sum(is.na(no_monetario_$cuip_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Accesorios personales (trimestral)
     accp_nm = if_else(
       clave %in% paste0("H", sprintf("%03d", c(123:131, 133))),
@@ -1705,15 +1593,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$R2.3b$t08
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$accp_nm, na.rm = T) == mean(no_monetario_$accp_nm, na.rm = T) &
-  sum(is.na(nomonetario$accp_nm)) == sum(is.na(no_monetario_$accp_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Otros gastos y transferencias (semestral)
     otr_nm = if_else(
       clave %in% paste0("N", sprintf("%03d", c(1:2, 6:16))) |
@@ -1726,15 +1606,7 @@ no_monetario_ <- no_monetario_ %>%
         decena %in% c(9,0) ~ gasnomon / deflactores_$INPC$s05
       ),
       false = NA_real_
-    )
-  )
-
-mean(nomonetario$otr_nm, na.rm = T) == mean(no_monetario_$otr_nm, na.rm = T) &
-  sum(is.na(nomonetario$otr_nm)) == sum(is.na(no_monetario_$otr_nm))
-
-
-no_monetario_ <- no_monetario_ %>% 
-  mutate(
+    ),
     # Regalos otorgados (semestral)
     reda_nm = if_else(
       clave == "N013" |
@@ -1749,120 +1621,9 @@ no_monetario_ <- no_monetario_ %>%
     )
   )
 
-mean(nomonetario$reda_nm, na.rm = T) == mean(no_monetario_$reda_nm, na.rm = T) &
-  sum(is.na(nomonetario$reda_nm)) == sum(is.na(no_monetario_$reda_nm))
-
-mean(nomonetario$ali_nm, na.rm = T) == mean(no_monetario_$ali_nm, na.rm = T) &
-  sum(is.na(nomonetario$ali_nm)) == sum(is.na(no_monetario_$ali_nm))
-mean(nomonetario$alta_nm, na.rm = T) == mean(no_monetario_$alta_nm, na.rm = T) &
-  sum(is.na(nomonetario$alta_nm)) == sum(is.na(no_monetario_$alta_nm))
-mean(nomonetario$veca_nm, na.rm = T) == mean(no_monetario_$veca_nm, na.rm = T) &
-  sum(is.na(nomonetario$veca_nm)) == sum(is.na(no_monetario_$veca_nm))
-mean(nomonetario$viv_nm, na.rm = T) == mean(no_monetario_$viv_nm, na.rm = T) &
-  sum(is.na(nomonetario$viv_nm)) == sum(is.na(no_monetario_$viv_nm))
-mean(nomonetario$lim_nm, na.rm = T) == mean(no_monetario_$lim_nm, na.rm = T) &
-  sum(is.na(nomonetario$lim_nm)) == sum(is.na(no_monetario_$lim_nm))
-mean(nomonetario$cris_nm, na.rm = T) == mean(no_monetario_$cris_nm, na.rm = T) &
-  sum(is.na(nomonetario$cris_nm)) == sum(is.na(no_monetario_$cris_nm))
-mean(nomonetario$ens_nm, na.rm = T) == mean(no_monetario_$ens_nm, na.rm = T) &
-  sum(is.na(nomonetario$ens_nm)) == sum(is.na(no_monetario_$ens_nm))
-mean(nomonetario$sal_nm, na.rm = T) == mean(no_monetario_$sal_nm, na.rm = T) &
-  sum(is.na(nomonetario$sal_nm)) == sum(is.na(no_monetario_$sal_nm))
-mean(nomonetario$tpub_nm, na.rm = T) == mean(no_monetario_$tpub_nm, na.rm = T) &
-  sum(is.na(nomonetario$tpub_nm)) == sum(is.na(no_monetario_$tpub_nm))
-mean(nomonetario$tfor_nm, na.rm = T) == mean(no_monetario_$tfor_nm, na.rm = T) &
-  sum(is.na(nomonetario$tfor_nm)) == sum(is.na(no_monetario_$tfor_nm))
-mean(nomonetario$com_nm, na.rm = T) == mean(no_monetario_$com_nm, na.rm = T) &
-  sum(is.na(nomonetario$com_nm)) == sum(is.na(no_monetario_$com_nm))
-mean(nomonetario$edre_nm, na.rm = T) == mean(no_monetario_$edre_nm, na.rm = T) &
-  sum(is.na(nomonetario$edre_nm)) == sum(is.na(no_monetario_$edre_nm))
-mean(nomonetario$edba_nm, na.rm = T) == mean(no_monetario_$edba_nm, na.rm = T) &
-  sum(is.na(nomonetario$edba_nm)) == sum(is.na(no_monetario_$edba_nm))
-mean(nomonetario$cuip_nm, na.rm = T) == mean(no_monetario_$cuip_nm, na.rm = T) &
-  sum(is.na(nomonetario$cuip_nm)) == sum(is.na(no_monetario_$cuip_nm))
-mean(nomonetario$accp_nm, na.rm = T) == mean(no_monetario_$accp_nm, na.rm = T) &
-  sum(is.na(nomonetario$accp_nm)) == sum(is.na(no_monetario_$accp_nm))
-mean(nomonetario$otr_nm, na.rm = T) == mean(no_monetario_$otr_nm, na.rm = T) &
-  sum(is.na(nomonetario$otr_nm)) == sum(is.na(no_monetario_$otr_nm))
-mean(nomonetario$reda_nm, na.rm = T) == mean(no_monetario_$reda_nm, na.rm = T) &
-  sum(is.na(nomonetario$reda_nm)) == sum(is.na(no_monetario_$reda_nm))
-
-columnas <- colnames(nomonetario)
 
 
-NOMON <- nomonetario %>% select(folioviv:reg)
-NO_MON <- no_monetario_ %>% select(folioviv:reg)
 
-ETARIO <- nomonetario %>% select(ali_nm:reda_nm)
-ETARIO_ <- no_monetario_ %>% select(ali_nm:reda_nm)
-
-columnas_ <- colnames(ETARIO)
-
-setequal(NOMON, NO_MON)
-setequal(ETARIO, ETARIO_)
-
-map(ETARIO, class)
-map(ETARIO_, class)
-
-map(ETARIO, typeof)
-map(ETARIO_, typeof)
-
-map(list(ETARIO, ETARIO_), ~sum(is.na(.x)))
-
-map(list(ETARIO, ETARIO_), mean, na.rm = TRUE)
-
-no_monetario_ <- no_monetario_ %>% select(columnas)
-
-setdiff(no_monetario_, nomonetario)
-
-setequal(no_monetario_, nomonetario)
-
-for (i in columnas_) {
-  print(setequal(ETARIO[, i], ETARIO_[, i]))
-}
-
-for (i in columnas_) {
-  print(identical(ETARIO[, i], ETARIO_[, i]))
-}
-
-for (i in columnas_) {
-  print(i)
-  print(setdiff(ETARIO[, i], ETARIO_[, i]))
-}
-
-for (i in columnas_) {
-  print(i)
-  print("original")
-  print(typeof(ETARIO[, i]))
-  print(class(ETARIO[, i])) 
-  print(attributes(ETARIO[, i]))
-  print("nueva")
-  print(typeof(ETARIO_[, i]))
-  print(class(ETARIO_[, i])) 
-  print(attributes(ETARIO_[, i]))
-}
-
-
-for (i in columnas_) {
-  print("setequal")
-  print(setequal(ETARIO[, i], ETARIO_[, i]))
-  print("identical")
-  print(identical(ETARIO[, i], ETARIO_[, i]))
-  print("all.equal")
-  print(all.equal(ETARIO[, i], ETARIO_[, i]))
-  print(" ")
-}
-
-for (i in columnas_) {
-  print("means")
-  print(mean(ETARIO[, i], na.rm = T))
-  print(mean(ETARIO_[, i], na.rm = T))
-  print("sd")
-  print(sd(ETARIO[, i], na.rm = T))
-  print(sd(ETARIO_[, i], na.rm = T))
-}
-
-anti_join(ETARIO, ETARIO_)
 
 # II. Pobreza =============================================================
 
