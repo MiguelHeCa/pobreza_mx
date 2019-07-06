@@ -1552,6 +1552,65 @@ mean(nomonetario$ens_nm, na.rm = T) == mean(no_monetario_$ens_nm, na.rm = T) &
   sum(is.na(nomonetario$ens_nm)) == sum(is.na(no_monetario_$ens_nm))
 
 
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Salud (trimestral)
+    sal_nm = if_else(
+      clave %in% paste0("J", sprintf("%03d", c(1:72))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R5.1$t05,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R5.1$t06,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R5.1$t07,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R5.1$t08
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$sal_nm, na.rm = T) == mean(no_monetario_$sal_nm, na.rm = T) &
+  sum(is.na(nomonetario$sal_nm)) == sum(is.na(no_monetario_$sal_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Transporte público (semanal)
+    tpub_nm = if_else(
+      clave %in% paste0("B", sprintf("%03d", c(1:7))),
+      true = case_when(
+        decena %in% c(1:3) ~ gasnomon / deflactores_$R6.1.1$w08,
+        decena %in% c(4:6) ~ gasnomon / deflactores_$R6.1.1$w09,
+        decena %in% c(7:9) ~ gasnomon / deflactores_$R6.1.1$w10,
+        decena == 0        ~ gasnomon / deflactores_$R6.1.1$w11
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$tpub_nm, na.rm = T) == mean(no_monetario_$tpub_nm, na.rm = T) &
+  sum(is.na(nomonetario$tpub_nm)) == sum(is.na(no_monetario_$tpub_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Transporte foráneo (semestral)
+    tfor_nm = if_else(
+      clave %in% paste0("M", sprintf("%03d", c(1:18))) |
+        clave %in% paste0("F", sprintf("%03d", c(7:14))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R6b$s02,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R6b$s03,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R6b$s04,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R6b$s05
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$tfor_nm, na.rm = T) == mean(no_monetario_$tfor_nm, na.rm = T) &
+  sum(is.na(nomonetario$tfor_nm)) == sum(is.na(no_monetario_$tfor_nm))
+
+
+
 
 
 
