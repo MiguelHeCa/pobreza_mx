@@ -1610,6 +1610,48 @@ mean(nomonetario$tfor_nm, na.rm = T) == mean(no_monetario_$tfor_nm, na.rm = T) &
   sum(is.na(nomonetario$tfor_nm)) == sum(is.na(no_monetario_$tfor_nm))
 
 
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Comunicaciones (mensual)
+    com_nm = if_else(
+      clave %in% paste0("F", sprintf("%03d", c(1:6))) |
+        clave %in% paste0("R", sprintf("%03d", c(5:8, 10:11))),
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R6a$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R6a$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R6a$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R6a$m10
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$com_nm, na.rm = T) == mean(no_monetario_$com_nm, na.rm = T) &
+  sum(is.na(nomonetario$com_nm)) == sum(is.na(no_monetario_$com_nm))
+
+
+no_monetario_ <- no_monetario_ %>% 
+  mutate(
+    # Educación y recreación (mensual)
+    edre_nm = if_else(
+      clave %in% paste0("E", sprintf("%03d", c(1:34))) |
+        clave %in% paste0("H", sprintf("%03d", c(134:135))) |
+        clave %in% paste0("L", sprintf("%03d", c(1:29))) |
+        clave %in% paste0("N", sprintf("%03d", c(3:5))) |
+        clave == "R009",
+      true = case_when(
+        decena %in% c(1:2) ~ gasnomon / deflactores_$R7$m07,
+        decena %in% c(3:5) ~ gasnomon / deflactores_$R7$m08,
+        decena %in% c(6:8) ~ gasnomon / deflactores_$R7$m09,
+        decena %in% c(9,0) ~ gasnomon / deflactores_$R7$m10
+      ),
+      false = NA_real_
+    )
+  )
+
+mean(nomonetario$edre_nm, na.rm = T) == mean(no_monetario_$edre_nm, na.rm = T) &
+  sum(is.na(nomonetario$edre_nm)) == sum(is.na(no_monetario_$edre_nm))
+
 
 
 
