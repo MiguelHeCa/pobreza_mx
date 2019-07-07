@@ -1628,7 +1628,17 @@ no_monetario_esp <- no_monetario %>%
   group_by(folioviv, foliohog) %>% 
   summarise_at(vars(ali_nm:reda_nm), sum, na.rm = T) %>% 
   ungroup() %>% 
-  set_names(~sub("nm", "nme", .x))
+  set_names(~sub(pattern = "nm", replacement = "nme", .x))
+
+# Regalos a partir de la base de gasto no monetario
+
+no_monetario_reg <- no_monetario %>% 
+  filter(reg == 1) %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise_at(vars(ali_nm:reda_nm), sum, na.rm = T) %>% 
+  ungroup() %>% 
+  set_names(~sub(pattern = "nm", replacement = "nmr", .x))
+
 
 # II. Pobreza =============================================================
 
