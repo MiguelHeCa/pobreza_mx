@@ -1,4 +1,6 @@
 
+# Ingreso no monetario ----------------------------------------------------
+
 columnas <- colnames(nomonetario)
 
 df_o <- nomonetario %>% arrange(folioviv, foliohog, clave, decena, gasnomon)
@@ -1060,3 +1062,6 @@ mean(nomonetario$reda_nm, na.rm = T) == mean(no_monetario_$reda_nm, na.rm = T) &
   sum(is.na(nomonetario$reda_nm)) == sum(is.na(no_monetario_$reda_nm))
 
 
+# Pagos en especie --------------------------------------------------------
+
+setequal(nomonetarioesp2, no_monetario_esp)

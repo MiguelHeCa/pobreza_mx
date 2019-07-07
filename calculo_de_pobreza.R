@@ -1622,8 +1622,13 @@ no_monetario <- no_monetario %>%
   )
 
 
-
-
+# Pagos en especie a partir de la base de gasto no monetario
+no_monetario_esp <- no_monetario %>% 
+  filter(esp == 1) %>% 
+  group_by(folioviv, foliohog) %>% 
+  summarise_at(vars(ali_nm:reda_nm), sum, na.rm = T) %>% 
+  ungroup() %>% 
+  set_names(~sub("nm", "nme", .x))
 
 # II. Pobreza =============================================================
 
